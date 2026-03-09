@@ -1,0 +1,6 @@
+schema_version: 1
+name: openvino
+version: v1.0
+description: "Installs Tools OpenVino model conversion"
+execute:
+- script: install.sh

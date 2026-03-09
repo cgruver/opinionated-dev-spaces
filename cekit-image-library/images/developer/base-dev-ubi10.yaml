@@ -1,0 +1,14 @@
+name: dev-tools/base-ubi10
+from: registry.access.redhat.com/ubi10:10.0
+version: latest
+packages:
+  manager: dnf
+  manager_flags: "--disableplugin=subscription-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=0"
+  install:
+  - https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm
+  - wget
+modules:
+  repositories:
+  - path: "../../modules"
+  install:
+  - name: dev-base

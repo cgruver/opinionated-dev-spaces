@@ -1,0 +1,18 @@
+schema_version: 1
+name: vscode-builder
+version: v1.0
+description: "Installs Tools for Developer VS Code and Extensions"
+packages:
+  install:
+  - sqlite
+  - make
+  - gcc
+  - gcc-c++
+args:
+- name: NODE_VERSION
+  value: v22.21.1
+envs:
+- name: PATH
+  value: ${PATH}:/usr/local/node/bin
+execute:
+- script: install.sh
