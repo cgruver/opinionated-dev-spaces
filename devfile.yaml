@@ -38,7 +38,7 @@ components:
     cpuLimit: 200m
     env:
     - name: HOME
-      value: "/projects/home"
+      value: "/projects"
 commands:
 - apply:
     component: prep-workspace

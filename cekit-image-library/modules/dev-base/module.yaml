@@ -38,7 +38,7 @@ envs:
 - name: BUILDAH_ISOLATION
   value: chroot
 - name: PATH
-  value: ${PATH}:${HOME}/.bin
+  value: ${PATH}:/projects/.bin
 artifacts:
 - name: entrypoint.sh
   path: entrypoint.sh

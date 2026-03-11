@@ -1,0 +1,12 @@
+schema_version: 1
+name: node24
+version: latest
+description: "Installs Node"
+args:
+- name: NODE_VERSION
+  value: v24.14.0
+envs:
+- name: PATH
+  value: ${PATH}:/usr/local/node/bin
+execute:
+- script: install.sh
