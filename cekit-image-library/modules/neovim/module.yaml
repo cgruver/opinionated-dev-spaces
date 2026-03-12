@@ -1,0 +1,9 @@
+schema_version: 1
+name: nvim
+version: v1.0
+description: "Installs NeoVim"
+args:
+- name: NVIM_VERSION
+  value: v0.11.6
+execute:
+- script: install.sh
