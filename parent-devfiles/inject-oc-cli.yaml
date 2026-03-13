@@ -1,0 +1,32 @@
+schemaVersion: 2.3.0
+attributes:
+  controller.devfile.io/storage-type: per-workspace
+metadata:
+  name: inject-oc-cli
+components:
+- name: prep-workspace
+  container:
+    args:
+      - '-c'
+      - >-
+        mkdir -p /projects/.bin && cp /usr/bin/oc /projects/.bin/oc && cp /usr/bin/kubectl /projects/.bin/kubectl && if [[ -f ${HOME}/.kube/config ]]; then rm ${HOME}/.kube/config; fi
+    command:
+      - /bin/bash
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    mountSources: true
+    sourceMapping: /projects
+    memoryRequest: 128Mi
+    memoryLimit: 256Mi
+    cpuRequest: 10m
+    cpuLimit: 200m
+    env:
+    - name: HOME
+      value: "/projects"
+commands:
+- apply:
+    component: prep-workspace
+    label: Pre Start Prep
+  id: prep-workspace
+events:
+  preStart:
+    - prep-workspace
