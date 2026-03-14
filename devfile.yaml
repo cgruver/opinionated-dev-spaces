@@ -1,6 +1,14 @@
 schemaVersion: 2.3.0
 metadata:
   name: opinionated-dev-spaces
+dependentProjects:
+- name: devworkspace-generator
+  git:
+    remotes:
+      origin: https://github.com/cgruver/devworkspace-generator.git
+    checkoutFrom:
+      remote: origin
+      revision: main
 components:
 - name: dev-tools
   container:

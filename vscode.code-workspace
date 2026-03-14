@@ -3,6 +3,10 @@
 		{
 			"name": "opinionated-dev-spaces",
 			"path": "/projects/opinionated-dev-spaces"
+		},
+		{
+			"name": "devworkspace-generator",
+			"path": "/projects/devworkspace-generator"
 		}
 	],
 	"extensions": {
