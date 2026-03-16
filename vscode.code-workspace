@@ -7,6 +7,14 @@
 		{
 			"name": "devworkspace-generator",
 			"path": "/projects/devworkspace-generator"
+		},
+		{
+			"name": "che-dashboard",
+			"path": "/projects/che-dashboard"
+		},
+		{
+			"name": "devworkspace-operator",
+			"path": "/projects/devworkspace-operator"
 		}
 	],
 	"extensions": {
@@ -27,6 +35,7 @@
 		"workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue)",
 		"workbench.preferredLightColorTheme": "Winter is Coming (Light)",
 		"editor.wordWrap": "on",
-		"files.autoSave": "off"
+		"files.autoSave": "off",
+		"roo-cline.autoImportSettingsPath": "/projects/roo-settings/roo-code-settings.json"
 	}
 }

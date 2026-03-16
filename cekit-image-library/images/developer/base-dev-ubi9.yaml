@@ -12,4 +12,5 @@ modules:
   - path: "../../modules"
   install:
   - name: dev-base
+  - name: yq
 

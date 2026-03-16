@@ -9,10 +9,24 @@ dependentProjects:
     checkoutFrom:
       remote: origin
       revision: main
+- name: che-dashboard
+  git:
+    remotes:
+      origin: https://github.com/cgruver/che-dashboard.git
+    checkoutFrom:
+      remote: origin
+      revision: main
+- name: devworkspace-operator
+  git:
+    remotes:
+      origin: https://github.com/cgruver/devworkspace-operator.git
+    checkoutFrom:
+      remote: origin
+      revision: main
 components:
 - name: dev-tools
   container:
-    image: nexus.clg.lab:5002/dev-spaces/workspace-base:test
+    image: nexus.clg.lab:5002/dev-spaces/ops-tools:latest
     # image: quay.io/cgruver0/che/workspace-base:latest
     memoryLimit: 6Gi
     memoryRequest: 1Gi
@@ -23,7 +37,7 @@ components:
     - name: SHELL
       value: "/bin/zsh"
     - name: VSCODE_DEFAULT_WORKSPACE
-      value: "/projects/opinionated-dev-spaces/vscode.code-workspace"
+      value: "$(PROJECT_SOURCE)/vscode.code-workspace"
 - volume:
     size: 50Gi
   name: projects

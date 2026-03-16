@@ -8,5 +8,4 @@ modules:
   repositories:
   - path: "../../modules"
   install:
-  - name: ansible
-
+  - name: ops-tools

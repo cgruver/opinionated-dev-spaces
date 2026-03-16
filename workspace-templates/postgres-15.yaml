@@ -1,0 +1,33 @@
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  name: postgres-15
+spec:
+  components:
+  - name: postgres
+    container:
+      # image: image-registry.openshift-image-registry.svc:5000/dev-tools/postgresql-15-c9s:c9s
+      image: quay.io/sclorg/postgresql-15-c9s:c9s
+      cpuRequest: 10m
+      cpuLimit: 500m
+      memoryRequest: 128M
+      memoryLimit: 512M
+      sourceMapping: /projects
+      mountSources: true
+      env:
+      - name: POSTGRESQL_USER
+        value: postgres
+      - name: POSTGRESQL_PASSWORD
+        value: postgres
+      - name: POSTGRESQL_DATABASE
+        value: postgres
+      volumeMounts:
+      - name: pgdata
+        path: /var/lib/pgsql/data
+      endpoints:
+        - name: postgres
+          targetPort: 5432
+          exposure: internal
+  - volume:
+      size: 2Gi
+    name: pgdata
