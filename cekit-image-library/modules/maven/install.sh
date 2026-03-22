@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+MAVEN_VERSION=$(basename $(curl -Ls -o /dev/null -w %{url_effective} https://github.com/apache/maven/releases/latest)|cut -d"-" -f2)
 TEMP_DIR="$(mktemp -d)" 
 mkdir -p /usr/local/maven /usr/local/maven/ref 
 curl -fsSL -o ${TEMP_DIR}/apache-maven.tar.gz https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz 
