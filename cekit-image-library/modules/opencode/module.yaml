@@ -4,7 +4,7 @@ version: latest
 description: "Installs Node"
 args:
 - name: OPENCODE_VERSION
-  value: v1.2.27
+  value: v1.3.0
 execute:
 - script: install.sh
 
