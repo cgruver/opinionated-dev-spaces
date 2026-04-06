@@ -38,6 +38,8 @@ components:
       value: "/bin/zsh"
     - name: VSCODE_DEFAULT_WORKSPACE
       value: "$(PROJECT_SOURCE)/vscode.code-workspace"
+    - name: OPENCODE_CONFIG
+      value: /projects/.globalconfig/opencode.json
 - volume:
     size: 50Gi
   name: projects
