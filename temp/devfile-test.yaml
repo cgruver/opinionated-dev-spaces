@@ -1,0 +1,71 @@
+schemaVersion: 2.3.0
+metadata:
+  name: basic-workspace
+components:
+  - container:
+      cpuLimit: "2"
+      cpuRequest: 100m
+      env:
+        - name: VSCODE_DEFAULT_WORKSPACE
+          value: $(PROJECT_SOURCE)/vscode.code-workspace
+      image: nexus.clg.lab:5002/dev-spaces/workspace-base:latest
+      memoryLimit: 6Gi
+      memoryRequest: 1Gi
+      mountSources: true
+      sourceMapping: /projects
+    name: dev-tools
+  - name: projects
+    volume:
+      size: 50Gi
+  - container:
+      cpuLimit: 500m
+      cpuRequest: 10m
+      endpoints:
+        - exposure: internal
+          name: postgres
+          protocol: http
+          targetPort: 5432
+      env:
+        - name: POSTGRESQL_USER
+          value: postgres
+        - name: POSTGRESQL_PASSWORD
+          value: postgres
+        - name: POSTGRESQL_DATABASE
+          value: postgres
+      image: quay.io/sclorg/postgresql-15-c9s:c9s
+      memoryLimit: 512M
+      memoryRequest: 128M
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: pgdata
+          path: /var/lib/pgsql/data
+    name: postgres
+  - name: pgdata
+    volume:
+      size: 2Gi
+  - container:
+      args:
+        - -c
+        - mkdir -p /projects/.bin && cp /usr/bin/oc /projects/.bin/oc && cp /usr/bin/kubectl /projects/.bin/kubectl && if [[ -f ${HOME}/.kube/config ]]; then rm ${HOME}/.kube/config; fi
+      command:
+        - /bin/bash
+      cpuLimit: 200m
+      cpuRequest: 10m
+      env:
+        - name: HOME
+          value: /projects
+      image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+      memoryLimit: 256Mi
+      memoryRequest: 128Mi
+      mountSources: true
+      sourceMapping: /projects
+    name: prep-workspace
+commands:
+  - apply:
+      component: prep-workspace
+      label: Pre Start Prep
+    id: prep-workspace
+events:
+  preStart:
+    - prep-workspace

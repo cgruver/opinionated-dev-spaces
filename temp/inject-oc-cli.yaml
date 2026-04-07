@@ -1,0 +1,26 @@
+commands:
+  - apply:
+      component: prep-workspace
+      label: Pre Start Prep
+    id: prep-workspace
+components:
+  - container:
+      args:
+        - -c
+        - mkdir -p /projects/.bin && cp /usr/bin/oc /projects/.bin/oc && cp /usr/bin/kubectl /projects/.bin/kubectl && if [[ -f ${HOME}/.kube/config ]]; then rm ${HOME}/.kube/config; fi
+      command:
+        - /bin/bash
+      cpuLimit: 200m
+      cpuRequest: 10m
+      env:
+        - name: HOME
+          value: /projects
+      image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+      memoryLimit: 256Mi
+      memoryRequest: 128Mi
+      mountSources: true
+      sourceMapping: /projects
+    name: prep-workspace
+events:
+  preStart:
+    - prep-workspace

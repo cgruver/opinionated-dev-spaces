@@ -7,3 +7,5 @@ curl -fsSL -o ${TEMP_DIR}/apache-maven.tar.gz https://dlcdn.apache.org/maven/mav
 tar -xzf ${TEMP_DIR}/apache-maven.tar.gz -C /usr/local/maven --strip-components=1  
 rm -rf "${TEMP_DIR}"
 ln -s /usr/local/maven/bin/mvn /usr/local/bin/mvn
+mv /settings.xml /usr/local/maven/conf/settings.xml
+chmod 444 /usr/local/maven/conf/settings.xml

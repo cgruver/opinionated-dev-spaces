@@ -1,0 +1,28 @@
+components:
+  - container:
+      cpuLimit: 500m
+      cpuRequest: 10m
+      endpoints:
+        - exposure: internal
+          name: postgres
+          protocol: http
+          targetPort: 5432
+      env:
+        - name: POSTGRESQL_USER
+          value: postgres
+        - name: POSTGRESQL_PASSWORD
+          value: postgres
+        - name: POSTGRESQL_DATABASE
+          value: postgres
+      image: quay.io/sclorg/postgresql-15-c9s:c9s
+      memoryLimit: 512M
+      memoryRequest: 128M
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: pgdata
+          path: /var/lib/pgsql/data
+    name: postgres
+  - name: pgdata
+    volume:
+      size: 2Gi
