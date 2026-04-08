@@ -29,7 +29,16 @@ RUN microdnf --disableplugin=subscription-manager install -y openssl git tar sha
     #
     # Enable podman to create uid and gid maps for the user
     setcap cap_setuid+ep /usr/bin/newuidmap ; \
-    setcap cap_setgid+ep /usr/bin/newgidmap
+    setcap cap_setgid+ep /usr/bin/newgidmap ; \
+    #
+    # Install YQ
+    TEMP_DIR="$(mktemp -d)" ; \ 
+    YQ_VER=$(basename $(curl -Ls -o /dev/null -w %{url_effective} https://github.com/mikefarah/yq/releases/latest)) ; \
+    curl -fsSL -o ${TEMP_DIR}/yq.tar.gz https://github.com/mikefarah/yq/releases/download/${YQ_VER}/yq_linux_amd64.tar.gz ; \
+    tar -xzf ${TEMP_DIR}/yq.tar.gz -C ${TEMP_DIR} ; \
+    cp ${TEMP_DIR}/yq_linux_amd64 /usr/local/bin/yq ; \
+    chmod +x /usr/local/bin/yq ; \
+    rm -rf "${TEMP_DIR}"
 
 # The SCC that we are using will ensure that the user runs as UID 1000 in its own user namespace on the host node.
 USER 1000

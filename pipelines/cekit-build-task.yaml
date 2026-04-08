@@ -3,10 +3,33 @@ metadata:
   name: cekit-builder
 spec:
   params:
+  - name: registry
+    type: string
+    description: Image registry that built images will be pushed to
+  - name: image-class
+    type: string
+    description: The group of images to be built.  base, utility, app-product
+  - name: repository
+    type: string
+    description: The git repository to pull the image and module descriptors from.
+  - name: revision
+    type: string
+    description: The repository branch to clone.
+    default: "main"
   steps:
   - name: clone
-  - name: build
     image: nexus.clg.lab:5002/dev-spaces/cekit-builder:latest
     script: |
-      cekit...
-  - name: push
+      git clone -b $(params.revision) --single-branch $(params.repository) /workspace/source
+  - name: build
+    image: nexus.clg.lab:5002/dev-spaces/cekit-builder:latest
+    workingDir: "/workspace/source"
+    script: |
+      cd images/$(params.image-class)
+      for image in $(ls *.yaml)
+      do
+        IMAGE_PATH=$(yq e ".name" ${image})
+        IMAGE_TAG=$(yq e ".version" ${image})
+        cekit --descriptor ${image} build podman --tag $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
+        podman push $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
+      done 
