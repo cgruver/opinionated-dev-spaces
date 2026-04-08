@@ -2,6 +2,13 @@ schemaVersion: 2.3.0
 metadata:
   name: opinionated-dev-spaces
 dependentProjects:
+- name: cekit-image-library
+  git:
+    remotes:
+      origin: https://github.com/cgruver/cekit-image-library.git
+    checkoutFrom:
+      remote: origin
+      revision: main
 - name: devworkspace-generator
   git:
     remotes:

@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+metadata:
+  name: cekit-builder
+spec:
+  params:
+  steps:
+  - name: clone
+  - name: build
+    image: nexus.clg.lab:5002/dev-spaces/cekit-builder:latest
+    script: |
+      cekit...
+  - name: push

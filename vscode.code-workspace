@@ -5,6 +5,10 @@
 			"path": "/projects/opinionated-dev-spaces"
 		},
 		{
+			"name": "cekit-image-library",
+			"path": "/projects/cekit-image-library"
+		},
+		{
 			"name": "devworkspace-generator",
 			"path": "/projects/devworkspace-generator"
 		},
@@ -22,7 +26,6 @@
 			"dbaeumer.vscode-eslint",
 			"redhat.vscode-yaml",
 			"redhat.vscode-openshift-connector",
-			"redhat.vscode-tekton-pipelines",
 			"mhutchie.git-graph",
 			"eamodio.gitlens",
 			"streetsidesoftware.code-spell-checker",
