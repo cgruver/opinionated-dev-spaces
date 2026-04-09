@@ -48,13 +48,15 @@ spec:
     env:
     - name: REGISTRY_AUTH_FILE
       value: /tmp/registry/auth.json
+    - name: NODE_EXTRA_CA_CERTS
+      value: /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem
     script: |
       cd images/$(params.image-class)
       for image in $(ls *.yaml)
       do
         IMAGE_PATH=$(yq e ".name" ${image})
         IMAGE_TAG=$(yq e ".version" ${image})
-        cekit --descriptor ${image} build podman --tag $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
+        cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --tag $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
         podman push $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
         podman image rm $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
       done 
