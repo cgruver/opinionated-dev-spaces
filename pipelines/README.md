@@ -12,3 +12,10 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 ```
+
+```bash
+oc apply -f cekit-build-setup.yaml
+oc apply -f cekit-build-task.yaml
+oc secrets link builder nexus-pull-secret --for=pull -n cekit-build
+oc start-build cekit-builder -n cekit-build -w -F
+```

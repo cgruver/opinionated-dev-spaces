@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: TaskRun
+metadata:
+  generateName: test-cekit-
+spec:
+  taskRef:
+    name: cekit-builder
+  params:
+  - name: registry
+    value: "nexus.clg.lab:5002"
+  - name: image-class
+    value: developer
+  - name: repository
+    value: https://github.com/cgruver/cekit-image-library.git
+  - name: revision
+    value: main
+  podTemplate:
+    hostUsers: false
+  serviceAccountName: cekit-builder

@@ -1,6 +1,10 @@
 apiVersion: tekton.dev/v1
+kind: Task
 metadata:
   name: cekit-builder
+  namespace: cekit-build
+  annotations:
+    io.kubernetes.cri-o.Devices: '/dev/fuse,/dev/net/tun'
 spec:
   params:
   - name: registry
@@ -16,6 +20,23 @@ spec:
     type: string
     description: The repository branch to clone.
     default: "main"
+  stepTemplate:
+    securityContext:
+      capabilities:
+        add:
+          - SETGID
+          - SETUID
+        drop:
+          - ALL
+      runAsUser: 1000
+      runAsNonRoot: true
+      readOnlyRootFilesystem: false
+      allowPrivilegeEscalation: true
+      procMount: Unmasked
+    volumeMounts:
+    - name: pull-secret
+      readOnly: true
+      mountPath: /tmp/registry
   steps:
   - name: clone
     image: nexus.clg.lab:5002/dev-spaces/cekit-builder:latest
@@ -24,6 +45,9 @@ spec:
   - name: build
     image: nexus.clg.lab:5002/dev-spaces/cekit-builder:latest
     workingDir: "/workspace/source"
+    env:
+    - name: REGISTRY_AUTH_FILE
+      value: /tmp/registry/auth.json
     script: |
       cd images/$(params.image-class)
       for image in $(ls *.yaml)
@@ -32,4 +56,12 @@ spec:
         IMAGE_TAG=$(yq e ".version" ${image})
         cekit --descriptor ${image} build podman --tag $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
         podman push $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
+        podman image rm $(params.registry)/${IMAGE_PATH}:${IMAGE_TAG}
       done 
+  volumes:
+  - name: pull-secret
+    secret:
+      secretName: nexus-pull-secret
+      items:
+      - key: .dockerconfigjson
+        path: auth.json

@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: test-cekit-
+  namespace: cekit-build
+spec:
+  pipelineRef:
+    name: cekit-build-all
+  taskRunTemplate:
+    podTemplate:
+      hostUsers: false
+    serviceAccountName: cekit-builder

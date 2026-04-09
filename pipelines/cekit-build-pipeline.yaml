@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: cekit-build-all
+  namespace: cekit-build
+spec:
+  tasks:
+  - name: base-images
+    taskRef:
+      name: cekit-builder
+    params:
+    - name: registry
+      value: "nexus.clg.lab:5002"
+    - name: image-class
+      value: developer
+    - name: repository
+      value: https://github.com/cgruver/cekit-image-library.git
+    - name: revision
+      value: main
+  - name: app-product-images
+    runAfter:
+    - base-images
+    taskRef:
+      name: cekit-builder
+    params:
+    - name: registry
+      value: "nexus.clg.lab:5002"
+    - name: image-class
+      value: app-product
+    - name: repository
+      value: https://github.com/cgruver/cekit-image-library.git
+    - name: revision
+      value: main
+  - name: utility-images
+    runAfter:
+    - base-images
+    taskRef:
+      name: cekit-builder
+    params:
+    - name: registry
+      value: "nexus.clg.lab:5002"
+    - name: image-class
+      value: utility
+    - name: repository
+      value: https://github.com/cgruver/cekit-image-library.git
+    - name: revision
+      value: main
