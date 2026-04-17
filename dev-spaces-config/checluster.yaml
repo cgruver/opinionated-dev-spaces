@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Namespace                 
 metadata:
   name: devspaces
----           
+---
 apiVersion: org.eclipse.che/v2 
 kind: CheCluster   
 metadata:              

@@ -1,0 +1,36 @@
+apiVersion: workspace.devfile.io/v1alpha2
+kind: DevWorkspaceTemplate
+metadata:
+  name: python-venv
+spec:
+  components:
+  - name: prep-python-venv
+    container:
+      image: quay.io/cgruver0/che/ansible-dev-tools:systemd
+      sourceMapping: /projects
+      memoryRequest: 128Mi
+      memoryLimit: 1Gi
+      cpuRequest: 10m
+      cpuLimit: 200m
+      mountSources: true
+      args:
+        - '-c'
+        - '${PROJECT_SOURCE}/.workspace-init/init-python-venv.sh'
+      command:
+        - /bin/bash
+      env:
+      - name: HOME
+        value: "/projects/home"
+commands:
+  - apply:
+      component: prep-workspace
+      label: Pre Start Prep
+    id: prep-workspace
+  - apply:
+      component: prep-python-venv
+      label: Pre Start Python Prep
+    id: prep-python-venv
+events:
+  preStart:
+    - prep-workspace
+    - prep-python-venv

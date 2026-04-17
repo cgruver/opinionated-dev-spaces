@@ -6,6 +6,15 @@ metadata:
 spec:
   pipelineRef:
     name: cekit-build-all
+  params:
+  - name: registry
+    value: "nexus.clg.lab:5002"
+  - name: registry-path
+    value: dev-spaces
+  - name: repository
+    value: https://github.com/cgruver/cekit-image-library.git
+  - name: revision
+    value: main
   taskRunTemplate:
     podTemplate:
       hostUsers: false
