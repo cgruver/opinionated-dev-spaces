@@ -1,0 +1,360 @@
+apiVersion: v1                      
+kind: Namespace                 
+metadata:
+  name: che-openvsx
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: open-vsx-pg
+  namespace: che-openvsx
+stringData:
+  database-user: openvsx
+  database-password: openvsx
+  database-name: openvsx
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: open-vsx-pg
+  namespace: che-openvsx
+spec:
+  ports:
+    - name: postgresql
+      protocol: TCP
+      port: 5432
+      targetPort: 5432
+      nodePort: 0
+  selector:
+    name: open-vsx-pg
+  type: ClusterIP
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: open-vsx-pg
+  namespace: che-openvsx
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: open-vsx-pg
+  namespace: che-openvsx
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  replicas: 1
+  selector:
+    matchLabels:
+      name: open-vsx-pg
+  template:
+    metadata:
+      labels:
+        name: open-vsx-pg
+    spec:
+      containers:
+        - name: postgresql
+          image: image-registry.openshift-image-registry.svc:5000/openshift/postgresql:15-el8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            exec:
+              command:
+                - /usr/libexec/check-container
+          livenessProbe:
+            timeoutSeconds: 10
+            initialDelaySeconds: 120
+            exec:
+              command:
+                - /usr/libexec/check-container
+                - --live
+          env:
+            - name: POSTGRESQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-user
+            - name: POSTGRESQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-password
+            - name: POSTGRESQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-name
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 1024Mi
+          volumeMounts:
+            - name: open-vsx-pg-data
+              mountPath: /var/lib/pgsql/data
+          terminationMessagePath: /dev/termination-log
+          capabilities: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            privileged: false
+      volumes:
+        - name: open-vsx-pg-data
+          persistentVolumeClaim:
+            claimName: open-vsx-pg
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: open-vsx-server
+  namespace: che-openvsx
+spec:
+  ports:
+    - name: open-vsx-server
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 0
+  selector:
+    name: open-vsx-server
+  type: ClusterIP
+  sessionAffinity: None
+status:
+  loadBalancer: {}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: open-vsx-server
+  namespace: che-openvsx
+spec:
+  to:
+    kind: Service
+    name: open-vsx-server
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: open-vsx-data
+  namespace: che-openvsx
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: open-vsx-config
+  namespace: che-openvsx
+data:
+  application-yaml: |
+    server:
+      port: 8080
+    spring:
+      profiles:
+        include: ovsx
+      autoconfigure:
+        exclude: 
+          - org.jobrunr.spring.autoconfigure.storage.JobRunrElasticSearchStorageAutoConfiguration
+          - org.springframework.boot.actuate.autoconfigure.tracing.zipkin.ZipkinAutoConfiguration
+      cache:
+        jcache:
+          config: classpath:ehcache.xml
+      datasource:
+        url: jdbc:postgresql://${OPEN_VSX_PG_SVC}/${OPEN_VSX_PG_DB}
+        username: ${OPEN_VSX_PG_USER}
+        password: ${OPEN_VSX_PG_PASSWD}
+      flyway:
+        baseline-on-migrate: true
+        baseline-version: 0.1.0
+        baseline-description: JobRunr tables    
+      jpa:
+        open-in-view: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+          ddl-auto: none
+      session:
+        store-type: jdbc
+        jdbc:
+          initialize-schema: never
+      security:
+          oauth2:
+            client:
+              registration:
+                github:
+                  client-id: foo
+                  client-secret: foo
+    management:
+      health:
+        probes:
+          enabled: true
+    ovsx:
+      storage:
+        local:
+          directory: "/extensions"
+      elasticsearch:
+        enabled: false
+        clear-on-start: true
+      databasesearch:
+        enabled: true
+      integrity:
+        key-pair: renew
+      extension-control:
+        enabled: false
+    bucket4j:
+      enabled: false
+    springdoc:
+      swagger-ui:
+        path: /swagger-ui
+        docExpansion: list
+        operationsSorter: alpha
+        supportedSubmitMethods:
+          - get
+    org:
+      jobrunr:
+        job-scheduler:
+          enabled: true
+        background-job-server:
+          enabled: true
+          worker-count: 2
+        dashboard:
+          enabled: false
+        database:
+          type: sql
+        miscellaneous:
+          allow-anonymous-data-usage: false
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: open-vsx-server
+  namespace: che-openvsx
+spec:
+  strategy:
+    type: Recreate
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    activeDeadlineSeconds: 21600
+  replicas: 1
+  selector:
+    matchLabels:
+      name: open-vsx-server
+  template:
+    metadata:
+      labels:
+        name: open-vsx-server
+    spec:
+      containers:
+        - name: open-vsx-server
+          image: registry.redhat.io/devspaces/openvsx-rhel9:3.27
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /user
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /user
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+          env:
+            - name: OPEN_VSX_PG_SVC
+              value: open-vsx-pg.che-openvsx.svc.cluster.local
+            - name: OPEN_VSX_PG_USER
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-user
+            - name: OPEN_VSX_PG_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-password
+            - name: OPEN_VSX_PG_DB
+              valueFrom:
+                secretKeyRef:
+                  name: open-vsx-pg
+                  key: database-name
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 3072Mi
+          volumeMounts:
+            - name: open-vsx-data
+              mountPath: /extensions
+            - name: open-vsx-config
+              mountPath: /openvsx-server/config/
+          terminationMessagePath: /dev/termination-log
+          capabilities: {}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            privileged: false
+      volumes:
+        - name: open-vsx-data
+          persistentVolumeClaim:
+            claimName: open-vsx-data
+        - name: open-vsx-config
+          configMap:
+            name: open-vsx-config
+            defaultMode: 444
+            items:
+            - key: application-yaml
+              path: application.yaml
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
