@@ -42,7 +42,5 @@ spec:
     secondsOfInactivityBeforeIdling: 1800
     storage:
       pvcStrategy: per-workspace
-      perWorkspaceStrategyPvcConfig:
-        storageClass: qnap-iscsi
   gitServices: {}
   networking: {}
