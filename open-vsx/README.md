@@ -60,7 +60,7 @@ export NODE_TLS_REJECT_UNAUTHORIZED='0'
 Modify `extension-list.yaml` to suit your needs, or create your own file with a list of extensions following the example in `extension-list.yaml`
 
 ```bash
-./offline-extensions.sh -d -f=extension-list.yaml 
+./import-extensions.sh -d -f=extension-list.yaml 
 ```
 
 Note the name of the bundle that is created.
@@ -68,7 +68,7 @@ Note the name of the bundle that is created.
 ### Import Extensions
 
 ```bash
-./offline-extensions.sh -u -b=/path/to/the/openvsx-bundle-****.tar
+./import-extensions.sh -u -b=/path/to/the/openvsx-bundle-****.tar
 ```
 
 ### Disable Access Token

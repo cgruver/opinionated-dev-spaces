@@ -333,7 +333,7 @@ spec:
             - name: open-vsx-data
               mountPath: /extensions
             - name: open-vsx-config
-              mountPath: /openvsx-server/config/
+              mountPath: /home/openvsx/server/config/
           terminationMessagePath: /dev/termination-log
           capabilities: {}
           securityContext:
@@ -352,7 +352,7 @@ spec:
             defaultMode: 444
             items:
             - key: application-yaml
-              path: application.yaml
+              path: application.yml
       restartPolicy: Always
       dnsPolicy: ClusterFirst
       securityContext:
