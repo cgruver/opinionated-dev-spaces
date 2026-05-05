@@ -39,6 +39,8 @@ spec:
     defaultNamespace:
       autoProvision: true
       template: <username>-devspaces
+    nodeSelector: 
+      "node-role.kubernetes.io/devworkspace": ""
     secondsOfInactivityBeforeIdling: 1800
     storage:
       pvcStrategy: per-workspace
