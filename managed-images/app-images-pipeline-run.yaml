@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: test-cekit-
+  namespace: cekit-images
+spec:
+  pipelineRef:
+    name: cekit-build-class
+  params:
+  - name: registry
+    value: "image-registry.openshift-image-registry.svc:5000"
+  - name: registry-path
+    value: cekit-images
+  - name: repository
+    value: https://github.com/cgruver/cekit-image-library.git
+  - name: class
+    value: app-product
+  - name: revision
+    value: main
+  taskRunTemplate:
+    podTemplate:
+      hostUsers: false
+    serviceAccountName: cekit-builder

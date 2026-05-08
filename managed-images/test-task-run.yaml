@@ -2,14 +2,17 @@ apiVersion: tekton.dev/v1
 kind: TaskRun
 metadata:
   generateName: test-cekit-
+  namespace: cekit-images
 spec:
   taskRef:
-    name: cekit-builder
+    name: cekit-image-builder
   params:
   - name: registry
-    value: "nexus.clg.lab:5002"
-  - name: image-class
-    value: developer
+    value: "image-registry.openshift-image-registry.svc:5000"
+  - name: registry-path
+    value: cekit-images
+  - name: image-path
+    value: app-product/cajun-navy.yaml
   - name: repository
     value: https://github.com/cgruver/cekit-image-library.git
   - name: revision

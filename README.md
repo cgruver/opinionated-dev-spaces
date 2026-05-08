@@ -85,7 +85,6 @@ Optional -
 
 1. Set up a local instance of an OpenVSX Registry so that you can curate and manage your own VS Code extension catalog.
 
-   
 
 
 ## Centralized Config - Maven Settings, NVM Settings, etc...

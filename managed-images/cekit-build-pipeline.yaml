@@ -3,30 +3,11 @@ kind: Namespace
 metadata:
   name: cekit-images
 ---
-apiVersion: v1                      
-kind: Namespace                 
-metadata:
-  name: imported-images
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: cekit-images-image-puller
   namespace: cekit-images
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:image-puller
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: Group
-  name: system:serviceaccounts
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: imported-images-image-puller
-  namespace: imported-images
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -153,7 +134,7 @@ spec:
   tasks:
   - name: base-images
     taskRef:
-      name: cekit-builder
+      name: cekit-class-builder
     params:
     - name: registry
       value: $(params.registry)
@@ -169,7 +150,7 @@ spec:
     runAfter:
     - base-images
     taskRef:
-      name: cekit-builder
+      name: cekit-class-builder
     params:
     - name: registry
       value: $(params.registry)
@@ -185,7 +166,7 @@ spec:
     runAfter:
     - base-images
     taskRef:
-      name: cekit-builder
+      name: cekit-class-builder
     params:
     - name: registry
       value: $(params.registry)
@@ -199,9 +180,48 @@ spec:
       value: $(params.revision)
 ---
 apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: cekit-build-class
+  namespace: cekit-images
+spec:
+  params:
+  - name: registry
+    type: string
+    description: Image registry that built images will be pushed to
+  - name: registry-path
+    type: string
+    description: Path to the image within the registry
+  - name: repository
+    type: string
+    description: The git repository to pull the image and module descriptors from.
+  - name: revision
+    type: string
+    description: The repository branch to clone.
+    default: "main"
+  - name: class
+    type: string
+    description: The class of images to build
+  tasks:
+  - name: build-images
+    taskRef:
+      name: cekit-class-builder
+    params:
+    - name: registry
+      value: $(params.registry)
+    - name: registry-path
+      value: $(params.registry-path)
+    - name: image-class
+      value: $(params.class)
+    - name: repository
+      value: $(params.repository)
+    - name: revision
+      value: $(params.revision)
+---
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: cekit-builder
+  name: cekit-class-builder
   namespace: cekit-images
   annotations:
     io.kubernetes.cri-o.Devices: '/dev/fuse,/dev/net/tun'
@@ -258,4 +278,63 @@ spec:
         podman push ${IMAGE}
         podman image rm ${IMAGE}
       done 
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cekit-image-builder
+  namespace: cekit-images
+  annotations:
+    io.kubernetes.cri-o.Devices: '/dev/fuse,/dev/net/tun'
+spec:
+  params:
+  - name: registry
+    type: string
+    description: Image registry that built images will be pushed to
+  - name: registry-path
+    type: string
+    description: Path to the image within the registry
+  - name: image-path
+    type: string
+    description: The relative path of the image.yaml to be built.
+  - name: repository
+    type: string
+    description: The git repository to pull the image and module descriptors from.
+  - name: revision
+    type: string
+    description: The repository branch to clone.
+    default: "main"
+  stepTemplate:
+    securityContext:
+      capabilities:
+        add:
+          - SETGID
+          - SETUID
+        drop:
+          - ALL
+      runAsUser: 1000
+      runAsNonRoot: true
+      readOnlyRootFilesystem: false
+      allowPrivilegeEscalation: true
+      procMount: Unmasked
+  steps:
+  - name: clone
+    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    script: |
+      git clone -b $(params.revision) --single-branch $(params.repository) /workspace/source
+  - name: build
+    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    workingDir: "/workspace/source"
+    env:
+    - name: NODE_EXTRA_CA_CERTS
+      value: /tekton-custom-certs/ca-bundle.crt
+    script: |
+      image_def="images/$(params.image-path)"
+      IMAGE_NAME=$(yq e ".name" ${image_def})
+      IMAGE_TAG=$(yq e ".version" ${image_def})
+      IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
+      cekit --descriptor ${image_def} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --tag ${IMAGE}
+      podman push ${IMAGE}
+      podman image rm ${IMAGE}
+
 
