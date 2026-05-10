@@ -102,7 +102,7 @@ spec:
     git:
       uri: https://github.com/cgruver/opinionated-dev-spaces.git
       ref: main
-    contextDir: "pipelines/cekit-builder-image"
+    contextDir: "managed-images/cekit-builder-image"
   strategy:
     dockerStrategy:
       dockerfilePath: "./Containerfile"
