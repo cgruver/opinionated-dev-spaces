@@ -47,8 +47,8 @@ spec:
       autoProvision: true
       template: <username>-devspaces
     imagePullPolicy: IfNotPresent
-    nodeSelector: 
-        nodeSelector: node-role.kubernetes.io/devworkspace=""
+    nodeSelector:  
+        node-role.kubernetes.io/devworkspace: ""
     secondsOfInactivityBeforeIdling: 1800
     storage:
       pvcStrategy: per-workspace
