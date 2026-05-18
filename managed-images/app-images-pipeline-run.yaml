@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: test-cekit-
+  generateName: build-app-images-cekit-
   namespace: cekit-images
 spec:
   pipelineRef:

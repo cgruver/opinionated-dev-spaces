@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+OFF_LINE=false
+
 function downloadExtension() {
 
   local url=${1}
@@ -8,9 +10,14 @@ function downloadExtension() {
 
   echo "Downloading: ${url}"
   curl -sL "${url}" -o "${WORK_DIR}/${fileName}"
-  echo "${namespace}" >> ${WORK_DIR}/tmp-namespace.list
-  echo "${fileName}" >> ${WORK_DIR}/bundle.list
-
+  if [[ ${OFF_LINE} == "true" ]]
+  then
+    echo "${namespace}" >> ${WORK_DIR}/tmp-namespace.list
+    echo "${fileName}" >> ${WORK_DIR}/bundle.list
+  else
+    ovsx create-namespace ${namespace}
+    ovsx publish --skip-duplicate ${WORK_DIR}/${fileName}
+  fi
 }
 
 function fetchExtensionData() {
@@ -115,11 +122,14 @@ function download() {
     fi
     index=$(( ${index} + 1 ))
   done
-  cat ${WORK_DIR}/tmp-namespace.list | sort -u > ${WORK_DIR}/namespace.list
-  rm ${WORK_DIR}/tmp-namespace.list
-  tar -cvf ${BUNDLE_NAME} -C ${WORK_DIR} .
+  if [[ ${OFF_LINE} == "true" ]]
+  then
+    cat ${WORK_DIR}/tmp-namespace.list | sort -u > ${WORK_DIR}/namespace.list
+    rm ${WORK_DIR}/tmp-namespace.list
+    tar -cvf ${BUNDLE_NAME} -C ${WORK_DIR} .
+    echo "Extension Bundle Created at: ./${BUNDLE_NAME}"
+  fi
   rm -rf ${WORK_DIR}
-  echo "Extension Bundle Created at: ./${BUNDLE_NAME}"
 }
 
 function upload() {
@@ -130,9 +140,9 @@ function upload() {
   do
     ovsx create-namespace ${namespace}
   done 
-  for bundle in $(cat ${WORK_DIR}/bundle.list)
+  for vsix in $(cat ${WORK_DIR}/bundle.list)
   do
-    ovsx publish --skip-duplicate ${WORK_DIR}/${bundle}
+    ovsx publish --skip-duplicate ${WORK_DIR}/${vsix}
   done
   rm -rf ${WORK_DIR}
 
@@ -154,6 +164,10 @@ function printHelp() {
   echo "wip"
 }
 
+function syncExtensions() {
+  
+}
+
 for i in "$@"
 do
   case $i in
@@ -162,6 +176,9 @@ do
     ;;
     -u|--upload)
       UPLOAD=true
+    ;;
+    -o|--offline)
+      OFF_LINE=true
     ;;
     -r=*|--registry=*)
       OVSX_REGISTRY_URL="${i#*=}"
@@ -189,4 +206,9 @@ fi
 if [[ ${UPLOAD} == "true" ]]
 then
   upload
+fi
+
+if [[ ${SYNC_EXTENSIONS} == "true" ]]
+then
+  syncExtensions
 fi
