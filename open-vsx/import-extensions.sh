@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 OFF_LINE=false
 
 function downloadExtension() {
@@ -18,6 +20,7 @@ function downloadExtension() {
     ovsx create-namespace ${namespace}
     ovsx publish --skip-duplicate ${WORK_DIR}/${fileName}
   fi
+  sleep 1
 }
 
 function fetchExtensionData() {
@@ -164,10 +167,6 @@ function printHelp() {
   echo "wip"
 }
 
-function syncExtensions() {
-  
-}
-
 for i in "$@"
 do
   case $i in
@@ -206,9 +205,4 @@ fi
 if [[ ${UPLOAD} == "true" ]]
 then
   upload
-fi
-
-if [[ ${SYNC_EXTENSIONS} == "true" ]]
-then
-  syncExtensions
 fi

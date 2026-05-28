@@ -19,7 +19,9 @@ extensions:
 - id: rooveterinaryinc.roo-cline
 - id: redhat.ansible
 - id: ms-python.python
-
+- id: kilocode.kilo-code
+- id: redhat.devspaces-copilot-chat-integration
+  version: 0.36.2
 # extensions:
 # - id: some.extension
 #   version: 1.2.3

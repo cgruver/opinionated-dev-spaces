@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: TaskRun
 metadata:
-  generateName: test-cekit-
+  generateName: build-single-image-cekit-
   namespace: cekit-images
 spec:
   taskRef:
@@ -12,7 +12,7 @@ spec:
   - name: registry-path
     value: cekit-images
   - name: image-path
-    value: app-product/cajun-navy.yaml
+    value: app-product/che-demo-app.yaml
   - name: repository
     value: https://github.com/cgruver/cekit-image-library.git
   - name: revision
