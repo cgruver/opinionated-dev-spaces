@@ -1,0 +1,39 @@
+apiVersion: v1                      
+kind: Namespace                 
+metadata:
+  name: claw-operator
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: claw-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: quay.io/codeready-toolchain/claw-operator-catalog:latest
+  displayName: Claw Operator
+  publisher: Red Hat
+  updateStrategy:
+    registryPoll:
+      interval: 15m
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: claw-operator
+  namespace: claw-operator
+spec:
+  targetNamespaces:
+    - claw-operator
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: claw-operator
+  namespace: claw-operator
+spec:
+  channel: staging
+  name: claw-operator
+  source: claw-operator-catalog
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic

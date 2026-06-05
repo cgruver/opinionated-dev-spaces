@@ -47,3 +47,32 @@ oc create configmap roo-code-config --from-file=roo-code-settings.json --from-fi
 oc label configmap roo-code-config app.kubernetes.io/part-of=che.eclipse.org app.kubernetes.io/component=workspaces-config -n devspaces
 oc annotate configmap roo-code-config controller.devfile.io/mount-as=subpath controller.devfile.io/mount-path=/globalconfig -n devspaces
 ```
+
+```
+images: 'traefik-rhel9=registry.redhat.io/devspaces/traefik-rhel9@sha256:b14ae96604856abc1148c51cb10a55993bbb466e0471f235c7a3d8d1e796394a;devworkspace-project-clone-rhel9=registry.redhat.io/devworkspace/devworkspace-project-clone-rhel9@sha256:9782d7a16befa43ab54c6a6c88431e5b1d6a432d72d77a049fd4548053c86ef3;che-code-insiders=quay.io/che-incubator/che-code:insiders;code-rhel9=registry.redhat.io/devspaces/code-rhel9@sha256:a0a9fcbe1b78d9d51dcb18ab46978a3a3cd04b5605aa93c4db3f689b71be2e0c'
+
+images: 'ansible-devspaces-0=ghcr.io/ansible/ansible-devspaces@sha256:d2ea3e53c2abe1b23cc42fb3930b878df776c83d12bcb41d8ac508a3db9838e4;che-code-1=quay.io/che-incubator/che-code:insiders;universal-developer-image-2=quay.io/devfile/universal-developer-image:latest;dotnet-90-3=quay.io/devspaces/dotnet-90@sha256:5cb201f58ebf20d76b7b99e013da46aa6cfe594c5763ab873bcc6436965d7859;code-rhel9-4=registry.redhat.io/devspaces/code-rhel9@sha256:11a105b3192f7e1dc0368ae9b5b79b206798164d6a7071a5aecf2cf71c525ca7;code-sshd-rhel9-5=registry.redhat.io/devspaces/code-sshd-rhel9@sha256:2472040b199dc9cbcf3cc9ca9c93f24a349abd916d572e54f9779a0a3a1c4769;jetbrains-ide-rhel9-6=registry.redhat.io/devspaces/jetbrains-ide-rhel9@sha256:faa2e36100d7062a27b7dcce26622ad274fe120bd58868007ab0ff850c7d4d50;udi-rhel9-7=registry.redhat.io/devspaces/udi-rhel9@sha256:11a7bfc7ad6bdd91f2acfe3d7a2b84f24161f5e5be66746ec29831f9f99e5c34;'
+
+```
+
+Test extra PVC
+
+```
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  annotations:
+    controller.devfile.io/mount-path: /extra-pvc
+  name: extra-storage
+  namespace: cgruver-devspaces
+  labels:
+    controller.devfile.io/mount-to-devworkspace: "true"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: qnap-iscsi
+  volumeMode: Filesystem
+```

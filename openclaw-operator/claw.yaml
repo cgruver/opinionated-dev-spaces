@@ -1,0 +1,135 @@
+apiVersion: openclaw.io/v1
+kind: Claw
+metadata:
+  name: openclaw-agentic-user22
+  namespace: agentic-user22
+spec:
+  # Operator-managed: injected by the Claw controller, not in config.raw
+  image: <some-image>:2026.5.26  # current running version
+  proxy:
+    enabled: true
+    caBundlePath: /etc/proxy-ca/ca.crt
+  credentials:
+    # OpenRouter API key is injected by the proxy/credential broker
+    openrouter:
+      secretRef: <some-secret>
+  
+  # User-managed config merged into /home/node/.openclaw/openclaw.json
+  config:
+    raw: |
+      {
+        "agents": {
+          "defaults": {
+            "workspace": "~/.openclaw/workspace",
+            "model": {
+              "primary": "openai/moonshotai/kimi-k2.6"
+            },
+            "models": {
+              "openai/gpt-5.4": { "alias": "GPT-5.4" },
+              "openai/gpt-5.4-mini": { "alias": "GPT-5.4 Mini" },
+              "openai/gpt-5.5": { "alias": "GPT-5.5" },
+              "openai/o3": { "alias": "o3" },
+              "openai/o4-mini": { "alias": "o4 Mini" },
+              "openai/moonshotai/kimi-k2.6": { "alias": "moonshotai/kimi-k2.6" }
+            }
+          },
+          "list": [
+            {
+              "id": "default",
+              "name": "OpenClaw Assistant",
+              "workspace": "~/.openclaw/workspace"
+            }
+          ]
+        },
+        "gateway": {
+          "auth": { "mode": "password" },
+          "bind": "lan",
+          "port": 18789,
+          "mode": "local",
+          "trustedProxies": ["10.0.0.0/8", "172.16.0.0/12"],
+          "controlUi": {
+            "enabled": true,
+            "dangerouslyDisableDeviceAuth": true,
+            "allowedOrigins": [
+              "https://instance-agentic-user22.apps.ocp.ql7rg.sandbox3486.opentlc.com",
+              "https://claw-22b44-11b841.apps.ocp.ql7rg.sandbox3486.opentlc.com",
+              "https://claw-22b44-11b841.yougetaclaw.com"
+            ]
+          }
+        },
+        "models": {
+          "providers": {
+            "openai": {
+              "baseUrl": "https://openrouter.ai/api/v1",
+              "models": [
+                {
+                  "id": "moonshotai/kimi-k2.6",
+                  "name": "moonshotai/kimi-k2.6",
+                  "api": "openai-completions",
+                  "reasoning": true,
+                  "contextWindow": 131072,
+                  "maxTokens": 8192,
+                  "compat": {
+                    "maxTokensField": "max_tokens",
+                    "supportsStore": false,
+                    "supportsPromptCacheKey": false,
+                    "supportsReasoningEffort": false,
+                    "supportsDeveloperRole": false
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "mcp": {
+          "servers": {
+            "customer": {
+              "transport": "streamable-http",
+              "url": "http://mcp-customer-service:9001/mcp"
+            },
+            "product": {
+              "transport": "streamable-http",
+              "url": "http://mcp-product-service:9003/mcp"
+            },
+            "sales-order": {
+              "transport": "streamable-http",
+              "url": "http://mcp-sales-order-service:9004/mcp"
+          }
+        },
+        "plugins": {
+          "entries": {
+            "diagnostics-prometheus": { "enabled": true },
+            "diagnostics-otel": {
+              "enabled": true,
+              "hooks": { "allowConversationAccess": true }
+            },
+            "langfuse-tracer": {
+              "enabled": true,
+              "hooks": { "allowConversationAccess": true }
+            }
+          },
+          "bundledDiscovery": "compat"
+        },
+        "diagnostics": {
+          "enabled": true,
+          "otel": {
+            "enabled": true,
+            "protocol": "http/protobuf",
+            "traces": true,
+            "metrics": false,
+            "logs": false,
+            "sampleRate": 1,
+            "captureContent": {
+              "inputMessages": true,
+              "outputMessages": true,
+              "toolInputs": true,
+              "toolOutputs": true,
+              "systemPrompt": false
+            }
+          }
+        },
+        "env": {
+          "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://mlflow-mlflow.mlflow.svc.cluster.local:5000/v1/traces",
+          "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "x-mlflow-experiment-id=1"
+        }
+      }

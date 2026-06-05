@@ -1,0 +1,76 @@
+{
+  "vscode-version":"1.108.2",
+  "architecture":"linux-x64",
+  "extensions": [
+    {
+      "id": "vscode.yaml"
+    },
+    {
+      "id": "redhat.vscode-yaml"
+    },
+    {
+      "id": "redhat.vscode-xml"
+    },
+    {
+      "id": "redhat.java"
+    },
+    {
+      "id": "redhat.vscode-quarkus"
+    },
+    {
+      "id": "redhat.vscode-tekton-pipelines"
+    },
+    {
+      "id": "vscjava.vscode-maven"
+    },
+    {
+      "id": "mhutchie.git-graph"
+    },
+    {
+      "id": "eamodio.gitlens"
+    },
+    {
+      "id": "streetsidesoftware.code-spell-checker"
+    },
+    {
+      "id": "DavidAnson.vscode-markdownlint"
+    },
+    {
+      "id": "johnpapa.winteriscoming"
+    },
+    {
+      "id": "cnshenj.vscode-task-manager"
+    },
+    {
+      "id": "angular.ng-template"
+    },
+    {
+      "id": "johnpapa.angular2"
+    },
+    {
+      "id": "redhat.vscode-openshift-connector"
+    },
+    {
+      "id": "dbaeumer.vscode-eslint"
+    },
+    {
+      "id": "ZooCodeOrganization.zoo-code"
+    },
+    {
+      "id": "redhat.ansible"
+    },
+    {
+      "id": "ms-python.python"
+    },
+    {
+      "id": "kilocode.kilo-code"
+    },
+    {
+      "id": "ms-kubernetes-tools.vscode-kubernetes-tools"
+    },
+    {
+      "id": "redhat.devspaces-copilot-chat-integration",
+      "version": "0.36.2"
+    }
+  ]
+}

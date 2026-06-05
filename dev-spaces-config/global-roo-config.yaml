@@ -8,9 +8,9 @@ metadata:
     app.kubernetes.io/component: workspaces-config
   annotations:
     controller.devfile.io/mount-as: subpath
-    controller.devfile.io/mount-path: /projects/.globalconfig
+    controller.devfile.io/mount-path: /globalconfig
 data:
-  roo-code-settings.json: |
+  zoo-code-settings.json: |
     {
       "providerProfiles": {
         "currentApiConfigName": "default",
@@ -89,7 +89,7 @@ data:
         "soundVolume": 0.5,
         "maxOpenTabsContext": 20,
         "maxWorkspaceFiles": 200,
-        "showRooIgnoredFiles": false,
+        "showZooIgnoredFiles": false,
         "enableSubfolderRules": false,
         "maxImageFileSize": 5,
         "maxTotalImageSize": 20,
@@ -254,7 +254,7 @@ data:
         "enterBehavior": "send",
         "profileThresholds": {},
         "hasOpenedModeSelector": true,
-        "lastSettingsExportPath": "/projects/home/roo-code-settings.json"
+        "lastSettingsExportPath": "/projects/home/zoo-code-settings.json"
       }
     }
   opencode.json: |

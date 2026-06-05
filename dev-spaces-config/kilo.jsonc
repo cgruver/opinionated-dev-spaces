@@ -21,8 +21,16 @@
         "baseURL": "http://10.11.12.101:8080/v1"
       },
       "models": {
-        "Qwen3-Coder-Next-Q5_K_M.gguf": {
-          "name": "Qwen3-Coder-Next-Q5_K_M.gguf",
+        "Qwen3-Coder-Next-Q6_K.gguf": {
+          "name": "Qwen3-Coder-Next-Q6_K.gguf",
+          "limit": {
+            "context": 262144,
+            "output": 262144
+          },
+          "reasoning": true
+        },
+        "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf": {
+          "name": "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf",
           "limit": {
             "context": 262144,
             "output": 262144

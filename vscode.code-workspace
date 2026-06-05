@@ -19,7 +19,8 @@
 			"streetsidesoftware.code-spell-checker",
 			"johnpapa.winteriscoming",
 			"sst-dev.opencode",
-			"rooveterinaryinc.roo-cline",
+			"zoocodeorganization.zoo-code",
+			"kilocode.kilo-code",
 			"cnshenj.vscode-task-manager"
 		]
 	},
@@ -29,6 +30,6 @@
 		"workbench.preferredLightColorTheme": "Winter is Coming (Light)",
 		"editor.wordWrap": "on",
 		"files.autoSave": "off",
-		"roo-cline.autoImportSettingsPath": "/projects/.globalconfig/roo-code-settings.json"
+		"zoo-code.autoImportSettingsPath": "/globalconfig/zoo-code-settings.json"
 	}
 }

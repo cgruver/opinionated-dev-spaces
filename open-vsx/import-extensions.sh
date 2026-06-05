@@ -179,12 +179,6 @@ do
     -o|--offline)
       OFF_LINE=true
     ;;
-    -r=*|--registry=*)
-      OVSX_REGISTRY_URL="${i#*=}"
-    ;;
-    -t=*|--token=*)
-      OVSX_PAT="${i#*=}"
-    ;;
     -f=*|--file=*)
       EXTENSION_FILE="${i#*=}"
     ;;
@@ -200,9 +194,7 @@ done
 if [[ ${DOWNLOAD} == "true" ]]
 then
   download
-fi
-
-if [[ ${UPLOAD} == "true" ]]
+elif [[ ${UPLOAD} == "true" ]]
 then
   upload
 fi

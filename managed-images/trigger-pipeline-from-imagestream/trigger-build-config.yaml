@@ -1,0 +1,15 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: run-cekit-build-ubi9
+  namespace: cekit-images
+spec:
+  runPolicy: Serial
+  serviceAccount: cekit-builder
+  source:
+    binary: {}
+    type: Binary
+  strategy:
+    type: Custom
+    customStrategy:
+      env:
