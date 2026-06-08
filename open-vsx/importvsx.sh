@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+set -x
+set -e
+
+QUERY_RESULT_SIZE=600
+
 function downloadExtension() {
 
   local url=${1}
@@ -42,8 +47,10 @@ function checkVersionCompatibility() {
     elif [[ ${vscode_ver_y} -eq ${min_ver_y} ]]
     then
       if [[ ${vscode_ver_z} -ge ${min_ver_z} ]]
-      echo "true"
-      return 0
+      then
+        echo "true"
+        return 0
+      fi
     fi
   fi
   echo "false"
@@ -51,47 +58,54 @@ function checkVersionCompatibility() {
 
 function getCompatibleRelease() {
   local ext_id=${1}
-  local num_versions=0
+  local results=0
   local index=0
-  local ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=${ARCH}&size=500&offset=0" -H 'accept: application/json' | jq '.extensions[] | select(.preRelease==false)')
 
-  num_versions=$(echo ${ext_data} | jq -r -s '. | length')
-  if [[ ${num_versions} -eq 0 ]]
+  local ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=${ARCH}&size=${QUERY_RESULT_SIZE}&offset=0" -H 'accept: application/json')
+  results=$(echo "${ext_data}" | jq -r '.totalSize')
+  if [[ ${results} -eq 0 ]]
   then
-    ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=universal&size=500&offset=0" -H 'accept: application/json' | jq '.extensions[] | select(.preRelease==false)')
-    num_versions=$(echo ${ext_data} | jq -r -s '. | length')
-    if [[ ${num_versions} -eq 0 ]]
+    ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=universal&size=${QUERY_RESULT_SIZE}&offset=0" -H 'accept: application/json')
+    results=$(echo "${ext_data}" | jq -r '.totalSize')
+    if [[ ${results} -eq 0 ]]
     then
       echo "not-found"
       return 1
     fi
   fi
-  while [[ ${index} -lt ${num_versions} ]]
+  ext_data=$(echo "${ext_data}" | jq -c '.extensions[] | select(.preRelease==false)')
+  results=$(echo "${ext_data}" | jq -c -s '. | length')
+  while [[ ${index} -lt ${results} ]]
   do
-    vscode_min_ver=$(echo ${ext_data} | jq -r -s ".[${index}] | .engines.vscode" | sed 's/\^//g')
+    vscode_min_ver=$(echo "${ext_data}" | jq -c -s ".[${index}]" | jq -r '.engines.vscode' | sed 's/\^//g')
+    if [[ ${vscode_min_ver} == "*" ]]
+    then
+      ext_compat=$(echo "${ext_data}" | jq -c -s ".[${index}]")
+      break
+    fi
     compatible=$(checkVersionCompatibility ${vscode_min_ver})
     if [[ ${compatible} == "true" ]]
     then
-      ext_compat=$(echo ${ext_data} | jq -r -s ".[${index}]")
+      ext_compat=$(echo "${ext_data}" | jq -c -s ".[${index}]")
       break
     fi
     index=$(( ${index} + 1 ))
   done
-  echo ${ext_compat}
+  echo "${ext_compat}"
 }
 
 function fetchDependencies() {
-  local ext_release=${1}
+  local ext_release="${1}"
   local index=0
 
   num_deps=$(echo "${ext_release}" | jq '.dependencies | length')
   while [[ ${index} -lt ${num_deps} ]]
   do
-    dep_namespace=$(echo "${ext_release}" | jq ".dependencies.[${index}].namespace")
-    dep_extension=$(echo "${ext_release}" | jq ".dependencies.[${index}].extension")
+    dep_namespace=$(echo "${ext_release}" | jq -r ".dependencies.[${index}].namespace")
+    dep_extension=$(echo "${ext_release}" | jq -r ".dependencies.[${index}].extension")
     dep_id="${dep_namespace}.${dep_extension}"
     dep_release=$(getCompatibleRelease ${dep_id})
-    dep_url=$(echo "${dep_release}" | jq '.files.download')
+    dep_url=$(echo "${dep_release}" | jq -r '.files.download')
     downloadExtension ${dep_url} ${dep_id//./-}.vsix $(echo ${dep_id} | cut -d"." -f1)
     index=$(( ${index} + 1 ))
   done
@@ -99,14 +113,15 @@ function fetchDependencies() {
 
 function download() {
   WORK_DIR=$(mktemp -d)
-  VSCODE_VERSION=$(jq ".vscode-version" ${EXTENSION_FILE})
-  ARCH=$(jq '.architecture' ${EXTENSION_FILE})
+  VSCODE_VERSION=$(jq -r ".vscode" ${EXTENSION_FILE})
+  ARCH=$(jq -r '.architecture' ${EXTENSION_FILE})
   local index=0
-  local num_ext=$(jq '.extensions | length' ${EXTENSION_FILE})
+  local num_ext=$(jq -r '.extensions | length' ${EXTENSION_FILE})
+  local count=0
 
   while [[ ${index} -lt ${num_ext} ]]
   do
-    ext_id=$(jq ".extensions.[${index}].id" ${EXTENSION_FILE})
+    ext_id=$(jq -r ".extensions.[${index}].id" ${EXTENSION_FILE})
     has_url=$(jq ".extensions.[${index}] | has(\"url\")" ${EXTENSION_FILE})
     if [[ ${has_url} == "true" ]]
     then
@@ -117,24 +132,25 @@ function download() {
     has_version=$(jq ".extensions.[${index}] | has(\"version\")" ${EXTENSION_FILE})
     if [[ ${has_version} == "true" ]]
     then
-      ext_version=$(jq ".extensions.[${index}].version" ${EXTENSION_FILE})
-      ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=devsense.composer-php-vscode&targetPlatform=${ARCH}&extensionVersion=1.70.18915&offset=0" -H 'accept: application/json' | jq '.extensions[]')
-      let result=$(echo ${ext_data} | jq -r -s '. | length')
-      if [[ ${result} -eq 0 ]]
+      ext_version=$(jq -r ".extensions.[${index}].version" ${EXTENSION_FILE})
+      ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&targetPlatform=${ARCH}&extensionVersion=${ext_version}&offset=0" -H 'accept: application/json')
+      count=$(echo "${ext_data}" | jq -r '.totalSize')
+      if [[ ${count} -eq 0 ]]
       then
-        ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=devsense.composer-php-vscode&targetPlatform=universal&extensionVersion=1.70.18915&offset=0" -H 'accept: application/json' | jq '.extensions[]')
-        let result=$(echo ${ext_data} | jq -r -s '. | length')
-        if [[ ${result} -eq 0 ]]
-          echo "ERROR: Extension ${ext_id} not found"
+        ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&targetPlatform=universal&extensionVersion=${ext_version}&offset=0" -H 'accept: application/json')
+        count=$(echo "${ext_data}" | jq -s '. | length')
+        if [[ ${count} -eq 0 ]]
+          then
+            echo "ERROR: Extension ${ext_id} not found"
           continue
         fi
       fi
-      ext_release=$(echo ${ext_data} | jq -r -s ".[0]")
+      ext_release=$(echo "${ext_data}" | jq -c ".extensions.[0]")
     else
       ext_release=$(getCompatibleRelease ${ext_id})
     fi
-    fetchDependencies ${ext_release}
-    ext_url=$(echo "${ext_release}" | jq '.files.download')
+    fetchDependencies "${ext_release}"
+    ext_url=$(echo "${ext_release}" | jq -r '.files.download')
     downloadExtension ${ext_url} ${ext_id//./-}.vsix $(echo ${ext_id} | cut -d"." -f1)
     index=$(( ${index} + 1 ))
   done

@@ -1,6 +1,6 @@
 {
-  "vscode-version":"1.108.2",
-  "architecture":"linux-x64",
+  "vscode": "1.108.2",
+  "architecture": "linux-x64",
   "extensions": [
     {
       "id": "vscode.yaml"
@@ -69,8 +69,7 @@
       "id": "ms-kubernetes-tools.vscode-kubernetes-tools"
     },
     {
-      "id": "redhat.devspaces-copilot-chat-integration",
-      "version": "0.36.2"
+      "id": "redhat.devspaces-copilot-chat-integration"
     }
   ]
 }

@@ -25,6 +25,11 @@ components:
       value: "$(PROJECT_SOURCE)/vscode.code-workspace"
     - name: OPENCODE_CONFIG
       value: /projects/.globalconfig/opencode.json
+    endpoints:
+      - exposure: none
+        name: kilo-code
+        protocol: tcp
+        targetPort: 4096
 - volume:
     size: 50Gi
   name: projects
