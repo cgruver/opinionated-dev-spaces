@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 set -e
 
 QUERY_RESULT_SIZE=600
@@ -23,31 +22,32 @@ function downloadExtension() {
   fi
 }
 
+# Interesting note, I had help on this function from Nemotron Super running on an ASUS GX10 + Kilo Code
 function checkVersionCompatibility() {
   local min_ver=${1}
-
-  min_ver_x=$(echo ${min_ver} | cut -d"." -f1)
-  min_ver_y=$(echo ${min_ver} | cut -d"." -f2)
-  min_ver_z=$(echo ${min_ver} | cut -d"." -f3)
-
-  vscode_ver_x=$(echo ${VSCODE_VERSION} | cut -d"." -f1)
-  vscode_ver_y=$(echo ${VSCODE_VERSION} | cut -d"." -f2)
-  vscode_ver_z=$(echo ${VSCODE_VERSION} | cut -d"." -f3)
-
-  if [[ ${vscode_ver_x} -gt ${min_ver_x} ]]
-  then
+  
+  # Convert version strings to arrays, handling missing parts
+  IFS='.' read -ra MIN_VER_PARTS <<< "${min_ver}"
+  IFS='.' read -ra VSCODE_VER_PARTS <<< "${VSCODE_VERSION}"
+  
+  # Pad arrays to at least 3 elements with zeros
+  while [[ ${#MIN_VER_PARTS[@]} -lt 3 ]]; do
+    MIN_VER_PARTS+=("0")
+  done
+  while [[ ${#VSCODE_VER_PARTS[@]} -lt 3 ]]; do
+    VSCODE_VER_PARTS+=("0")
+  done
+  
+  # Compare each part numerically
+  if [[ ${VSCODE_VER_PARTS[0]} -gt ${MIN_VER_PARTS[0]} ]]; then
     echo "true"
     return 0
-  elif [[ ${vscode_ver_x} -eq ${min_ver_x} ]]
-  then
-    if [[ ${vscode_ver_y} -gt ${min_ver_y} ]]
-    then
+  elif [[ ${VSCODE_VER_PARTS[0]} -eq ${MIN_VER_PARTS[0]} ]]; then
+    if [[ ${VSCODE_VER_PARTS[1]} -gt ${MIN_VER_PARTS[1]} ]]; then
       echo "true"
       return 0
-    elif [[ ${vscode_ver_y} -eq ${min_ver_y} ]]
-    then
-      if [[ ${vscode_ver_z} -ge ${min_ver_z} ]]
-      then
+    elif [[ ${VSCODE_VER_PARTS[1]} -eq ${MIN_VER_PARTS[1]} ]]; then
+      if [[ ${VSCODE_VER_PARTS[2]} -ge ${MIN_VER_PARTS[2]} ]]; then
         echo "true"
         return 0
       fi
@@ -55,6 +55,40 @@ function checkVersionCompatibility() {
   fi
   echo "false"
 }
+
+# My original function that Kilo + Nemotron improved
+# function checkVersionCompatibility() {
+#   local min_ver=${1}
+
+#   min_ver_x=$(echo ${min_ver} | cut -d"." -f1)
+#   min_ver_y=$(echo ${min_ver} | cut -d"." -f2)
+#   min_ver_z=$(echo ${min_ver} | cut -d"." -f3)
+
+#   vscode_ver_x=$(echo ${VSCODE_VERSION} | cut -d"." -f1)
+#   vscode_ver_y=$(echo ${VSCODE_VERSION} | cut -d"." -f2)
+#   vscode_ver_z=$(echo ${VSCODE_VERSION} | cut -d"." -f3)
+
+#   if [[ ${vscode_ver_x} -gt ${min_ver_x} ]]
+#   then
+#     echo "true"
+#     return 0
+#   elif [[ ${vscode_ver_x} -eq ${min_ver_x} ]]
+#   then
+#     if [[ ${vscode_ver_y} -gt ${min_ver_y} ]]
+#     then
+#       echo "true"
+#       return 0
+#     elif [[ ${vscode_ver_y} -eq ${min_ver_y} ]]
+#     then
+#       if [[ ${vscode_ver_z} -ge ${min_ver_z} ]]
+#       then
+#         echo "true"
+#         return 0
+#       fi
+#     fi
+#   fi
+#   echo "false"
+# }
 
 function getCompatibleRelease() {
   local ext_id=${1}
@@ -82,6 +116,12 @@ function getCompatibleRelease() {
     then
       ext_compat=$(echo "${ext_data}" | jq -c -s ".[${index}]")
       break
+    fi
+    # Handle common version specifiers by taking just the version number
+    vscode_min_ver=$(echo ${vscode_min_ver} | sed -E 's/[<>=~^].*//')
+    # If after stripping we have nothing, it was just a specifier like "^"
+    if [[ -z ${vscode_min_ver} ]]; then
+      vscode_min_ver="0.0.0"
     fi
     compatible=$(checkVersionCompatibility ${vscode_min_ver})
     if [[ ${compatible} == "true" ]]
@@ -140,8 +180,8 @@ function download() {
         ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&targetPlatform=universal&extensionVersion=${ext_version}&offset=0" -H 'accept: application/json')
         count=$(echo "${ext_data}" | jq -s '. | length')
         if [[ ${count} -eq 0 ]]
-          then
-            echo "ERROR: Extension ${ext_id} not found"
+        then
+          echo "ERROR: Extension ${ext_id} not found"
           continue
         fi
       fi
@@ -178,7 +218,6 @@ function upload() {
     ovsx publish --skip-duplicate ${WORK_DIR}/${vsix}
   done
   rm -rf ${WORK_DIR}
-
 }
 
 for i in "$@"

@@ -57,12 +57,12 @@ export NODE_TLS_REJECT_UNAUTHORIZED='0'
 
 ## Download Extensions
 
-Modify `extension-list.yaml` to suit your needs, or create your own file with a list of extensions following the example in `extension-list.yaml`
+Modify `extension-import-list.json` to suit your needs, or create your own file with a list of extensions following the example in `extension-import-list.json`
 
 ### Non-Air-Gapped Network
 
 ```bash
-./import-extensions.sh -d -f=extension-import-list.yaml 
+./import-extensions.sh -d -f=extension-import-list.json 
 ```
 
 ### Air-Gapped Network
@@ -70,7 +70,7 @@ Modify `extension-list.yaml` to suit your needs, or create your own file with a 
 Adding the `-o` flag will cause the script to download all of the VSIX files and bundle them into a Tar file with a table of contents for extraction and upload.
 
 ```bash
-./import-extensions.sh -d -o -f=extension-import-list.yaml 
+./import-extensions.sh -d -o -f=extension-import-list.json 
 ```
 
 Note the name of the bundle that is created.
