@@ -4,6 +4,20 @@ set -e
 
 QUERY_RESULT_SIZE=600
 
+function createNamespace() {
+  local namespace=${1}
+  local check_namespace=$(curl -sLS "${OVSX_REGISTRY_URL}/api/${namespace}" -H 'accept: application/json' | jq -c '. | has("error")')
+  if [[ ${check_namespace} == "true" ]]
+  then
+    ovsx create-namespace ${namespace}
+  fi
+}
+
+function publishExtension() {
+  local vsix_file=${1}
+  ovsx publish --skip-duplicate ${WORK_DIR}/${vsix_file}
+}
+
 function downloadExtension() {
 
   local url=${1}
@@ -17,12 +31,12 @@ function downloadExtension() {
     echo "${namespace}" >> ${WORK_DIR}/tmp-namespace.list
     echo "${fileName}" >> ${WORK_DIR}/bundle.list
   else
-    ovsx create-namespace ${namespace}
-    ovsx publish --skip-duplicate ${WORK_DIR}/${fileName}
+    createNamespace ${namespace}
+    publishExtension ${fileName}
   fi
 }
 
-# Interesting note, I had help on this function from Nemotron Super running on an ASUS GX10 + Kilo Code
+# Interesting note, I had help with this function from Nemotron Super running on an ASUS GX10 + Kilo Code
 function checkVersionCompatibility() {
   local min_ver=${1}
   
@@ -165,7 +179,7 @@ function download() {
     has_url=$(jq ".extensions.[${index}] | has(\"url\")" ${EXTENSION_FILE})
     if [[ ${has_url} == "true" ]]
     then
-      ext_url=$(yq e ".extensions.[${index}].url" ${EXTENSION_FILE})
+      ext_url=$(jq -r ".extensions.[${index}].url" ${EXTENSION_FILE})
       downloadExtension ${ext_url} ${ext_id//./-}.vsix $(echo ${ext_id} | cut -d"." -f1)
       continue
     fi
@@ -211,11 +225,11 @@ function upload() {
   tar -xvf ${BUNDLE_NAME} -C ${WORK_DIR}
   for namespace in $(cat ${WORK_DIR}/namespace.list)
   do
-    ovsx create-namespace ${namespace}
+    createNamespace ${namespace}
   done 
   for vsix in $(cat ${WORK_DIR}/bundle.list)
   do
-    ovsx publish --skip-duplicate ${WORK_DIR}/${vsix}
+    publishExtension ${vsix}
   done
   rm -rf ${WORK_DIR}
 }

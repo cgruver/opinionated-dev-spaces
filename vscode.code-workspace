@@ -30,6 +30,15 @@
 		"workbench.preferredLightColorTheme": "Winter is Coming (Light)",
 		"editor.wordWrap": "on",
 		"files.autoSave": "off",
-		"zoo-code.autoImportSettingsPath": "/globalconfig/zoo-code-settings.json"
+		"zoo-code.autoImportSettingsPath": "/globalconfig/zoo-code-settings.json",
+		"chat.disableAIFeatures": true,
+		"kilo-code.new.autocomplete.enableAutoTrigger": false,
+		"kilo-code.new.autocomplete.enableChatAutocomplete": false,
+		"kilo-code.new.autocomplete.enableSmartInlineTaskKeybinding": false,
+		"kilo-code.new.browserAutomation.enabled": false,
+		"kilo-code.new.browserAutomation.headless": false,
+		"kilo-code.new.browserAutomation.useSystemChrome": false,
+		"kilo-code.new.model.providerID": "asus-gx10",
+		"kilo-code.new.model.modelID": "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf"
 	}
 }

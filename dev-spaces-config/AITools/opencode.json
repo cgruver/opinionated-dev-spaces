@@ -1,0 +1,22 @@
+{
+      "$schema": "https://opencode.ai/config.json",
+      "model": "llama.cpp/NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf",
+      "provider": {
+        "llama.cpp": {
+          "npm": "@ai-sdk/openai-compatible",
+          "name": "asus-gx10",
+          "options": {
+            "baseURL": "http://10.11.12.101:8080/v1"
+          },
+          "models": {
+            "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf": {
+              "name": "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf",
+              "limit": {
+                "context": 262144,
+                "output": 262144
+              }
+            }
+          }
+        }
+      }
+    }
