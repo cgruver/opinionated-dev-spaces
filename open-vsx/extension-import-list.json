@@ -63,6 +63,24 @@
       "id": "ms-python.python"
     },
     {
+      "id": "ms-toolsai.jupyter"
+    },
+    {
+      "id": "ms-toolsai.jupyter-keymap"
+    },
+    {
+      "id": "ms-toolsai.vscode-jupyter-cell-tags"
+    },
+    {
+      "id": "ms-toolsai.vscode-jupyter-slideshow"
+    },
+    {
+      "id": "ms-toolsai.jupyter-renderers"
+    },
+    {
+      "id": "ms-python.debugpy"
+    },
+    {
       "id": "kilocode.kilo-code"
     },
     {
