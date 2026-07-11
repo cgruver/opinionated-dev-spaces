@@ -1,9 +1,12 @@
 {
-  "vscode": "1.108.2",
+  "vscode": "1.116.0",
   "architecture": "linux-x64",
   "extensions": [
     {
       "id": "vscode.yaml"
+    },
+    {
+      "id": "ms-kubernetes-tools.vscode-kubernetes-tools"
     },
     {
       "id": "redhat.vscode-yaml"

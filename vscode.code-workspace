@@ -17,7 +17,7 @@
 		"recommendations": [
 			"dbaeumer.vscode-eslint",
 			"redhat.vscode-yaml",
-			"redhat.vscode-openshift-connector",
+			"ms-kubernetes-tools.vscode-kubernetes-tools",
 			"mhutchie.git-graph",
 			"eamodio.gitlens",
 			"streetsidesoftware.code-spell-checker",
@@ -43,6 +43,7 @@
 		"kilo-code.new.browserAutomation.headless": false,
 		"kilo-code.new.browserAutomation.useSystemChrome": false,
 		"kilo-code.new.model.providerID": "asus-gx10",
-		"kilo-code.new.model.modelID": "NVIDIA-Nemotron-3-Super-120B-A12B-UD-Q4_K_M.gguf"
+		"kilo-code.new.model.modelID": "nemotron-3-super",
+		"yaml.kubernetesCRDStore.enable": true
 	}
 }
