@@ -9,6 +9,13 @@ dependentProjects:
     checkoutFrom:
       remote: origin
       revision: main
+- name: kamarotos
+  git:
+    remotes:
+      origin: https://github.com/cgruver/kamarotos.git
+    checkoutFrom:
+      remote: origin
+      revision: main
 components:
 - name: dev-tools
   container:
