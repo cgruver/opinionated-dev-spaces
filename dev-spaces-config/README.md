@@ -66,7 +66,7 @@ oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{.spec.
 
 oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o json | jq -r '.spec.relatedImages[] | select(.name == "editor_definition_che_code_latest_che_code_injector") | .image'
 
-
+oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{.spec.relatedImages[?(@.name=="editor_definition_che_code_latest_che_code_injector")].image}'
 
 editor_definition_che_code_latest_che_code_injector
 editor_definition_che_code_latest_che_code_runtime_description
