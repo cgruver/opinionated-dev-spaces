@@ -55,6 +55,26 @@ images: 'ansible-devspaces-0=ghcr.io/ansible/ansible-devspaces@sha256:d2ea3e53c2
 
 ```
 
+```bash
+oc get installplan -o jsonpath='{range .items[?(@.spec.approved==false)]}{.metadata.name},{.spec.clusterServiceVersionNames}{"\n"}{end}'
+
+oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{.spec.relatedImages}' | jq
+
+oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{range .items[?(@.spec.relatedImages.name==editor_definition_che_code_latest_che_code_injector)]  .spec.relatedImages}'
+
+oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{.spec.relatedImages}{range .items[?(@.name==editor_definition_che_code_latest_che_code_injector)]}{.image}'
+
+oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o json | jq -r '.spec.relatedImages[] | select(.name == "editor_definition_che_code_latest_che_code_injector") | .image'
+
+
+
+editor_definition_che_code_latest_che_code_injector
+editor_definition_che_code_latest_che_code_runtime_description
+
+oc get csv devworkspace-operator.v0.42.0  -n openshift-operators -o jsonpath='{.spec.relatedImages}' | jq
+project_clone
+```
+
 Test extra PVC
 
 ```

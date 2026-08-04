@@ -51,9 +51,6 @@
       "id": "johnpapa.angular2"
     },
     {
-      "id": "redhat.vscode-openshift-connector"
-    },
-    {
       "id": "dbaeumer.vscode-eslint"
     },
     {
@@ -87,10 +84,10 @@
       "id": "kilocode.kilo-code"
     },
     {
-      "id": "ms-kubernetes-tools.vscode-kubernetes-tools"
+      "id": "ms-dotnettools.vscode-dotnet-runtime"
     },
     {
-      "id": "redhat.devspaces-copilot-chat-integration"
+      "id": "muhammad-sammy.csharp"
     }
   ]
 }
