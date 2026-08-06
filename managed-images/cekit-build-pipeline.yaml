@@ -6,7 +6,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: cekit-images-image-puller
+  name: cekit-images-image-puller-serviceaccounts
   namespace: cekit-images
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -16,6 +16,20 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: system:serviceaccounts
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cekit-images-image-puller-users
+  namespace: cekit-images
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:authenticated
 ---
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
@@ -91,6 +105,38 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: cekit-builder
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pinned-image-sets
+rules:
+  - apiGroups:
+      - machineconfiguration.openshift.io
+    resources:
+      - pinnedimagesets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+      - deletecollection
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-pinned-image-sets
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+    namespace: cekit-images
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pinned-image-sets
 ---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
@@ -268,16 +314,35 @@ spec:
     - name: NODE_EXTRA_CA_CERTS
       value: /tekton-custom-certs/ca-bundle.crt
     script: |
+      cat << EOF > /workspace/source/pinned-images.yaml
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: PinnedImageSet
+      metadata:
+        name: cekit-builder-images-$(params.image-class)
+      spec:
+        pinnedImages:
+      EOF
+
       cd images/$(params.image-class)
       for image in $(ls *.yaml)
       do
         IMAGE_NAME=$(yq e ".name" ${image})
         IMAGE_TAG=$(yq e ".version" ${image})
         IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
-        cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --tag ${IMAGE}
-        podman push ${IMAGE}
-        podman image rm ${IMAGE}
-      done 
+        cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --build-flag --manifest --build-flag ${IMAGE}
+        podman manifest push ${IMAGE}
+        IMAGE_SHA=$(podman manifest inspect ${IMAGE} | yq -p json -r '.manifests[0].digest')
+        IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
+        echo "  - name: ${IMAGE_REF}" >> /workspace/source/pinned-images.yaml
+        podman manifest rm ${IMAGE}
+      done
+  - name: apply-pinnedimageset
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    workingDir: "/workspace/source"
+    script: |
+      cat /workspace/source/pinned-images.yaml
+      oc apply -f /workspace/source/pinned-images.yaml
+      rm /workspace/source/pinned-images.yaml
 ---
 apiVersion: tekton.dev/v1
 kind: Task
@@ -333,8 +398,33 @@ spec:
       IMAGE_NAME=$(yq e ".name" ${image_def})
       IMAGE_TAG=$(yq e ".version" ${image_def})
       IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
-      cekit --descriptor ${image_def} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --tag ${IMAGE}
-      podman push ${IMAGE}
-      podman image rm ${IMAGE}
+      cekit --descriptor ${image_def} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --build-flag --manifest --build-flag ${IMAGE}
+      podman manifest push ${IMAGE}
+      podman manifest rm ${IMAGE}
+  - name: create-pinned-image-manifest
+    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    workingDir: "/workspace/source"
+    script: |
+      image_def="images/$(params.image-path)"
+      IMAGE_NAME=$(yq e ".name" ${image_def})
+      IMAGE_TAG=$(yq e ".version" ${image_def})
+      IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
+      IMAGE_SHA=$(podman manifest inspect ${IMAGE} | yq -p json -r '.manifests[0].digest')
+      IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
+      cat << EOF > pin-image.yaml
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: PinnedImageSet
+      metadata:
+        name: cekit-builder-image-${IMAGE_NAME}-${IMAGE_TAG}
+      spec:
+        pinnedImages:
+        - name: ${IMAGE_REF}
+      EOF
+  - name: apply-pinnedimageset
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    workingDir: "/workspace/source"
+    script: |
+      oc apply -f pin-image.yaml
+      rm pin-image.yaml
 
 
