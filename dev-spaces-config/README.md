@@ -56,6 +56,54 @@ images: 'ansible-devspaces-0=ghcr.io/ansible/ansible-devspaces@sha256:d2ea3e53c2
 ```
 
 ```bash
+CSV=$(oc get csv -n openshift-operators -o name | grep devspaces)
+che_code=$(oc get ${CSV} -n openshift-operators -o jsonpath='{.spec.relatedImages[?(@.name=="editor_definition_che_code_latest_che_code_injector")].image}')
+traefik=$(oc get ${CSV} -n openshift-operators -o jsonpath='{.spec.relatedImages[?(@.name=="single_host_gateway")].image}')
+CSV=$(oc get csv -n openshift-operators -o name | grep devworkspace)
+project_clone=$(oc get ${CSV} -n openshift-operators -o jsonpath='{.spec.relatedImages[?(@.name=="project_clone")].image}')
+cat << EOF | oc apply -f -
+apiVersion: machineconfiguration.openshift.io/v1
+kind: PinnedImageSet
+metadata:
+  name: devspaces-images
+  labels:
+    machineconfiguration.openshift.io/role: worker
+spec:
+  pinnedImages:
+  - name: ${che_code}
+  - name: ${traefik}
+  - name: ${project_clone}
+EOF
+```
+
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: registry-puller
+  namespace: cekit-images
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: internal-registry-token
+  namespace: cekit-images
+  annotations:
+    kubernetes.io/service-account.name: "registry-puller"
+type: kubernetes.io/service-account-token
+```
+
+```
+oc get secret/pull-secret -n openshift-config --template='{{index .data ".dockerconfigjson" | base64decode}}' > global-pull-secret.json
+
+oc get secret registry-puller-dockercfg-lz5h6 -n cekit-images --template='{{index .data ".dockercfg" | base64decode}}' | jq -r '."image-registry.openshift-image-registry.svc:5000".auth' | base64 -d
+
+oc registry login --registry="image-registry.openshift-image-registry.svc:5000" --auth-basic="system:serviceaccount:cekit-images:registry-puller:$(oc get secret internal-registry-token -n cekit-images -o jsonpath='{.data.token}' | base64 --decode)" --to=global-pull-secret.json
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=./global-pull-secret.json
+```
+
+```bash
 oc get installplan -o jsonpath='{range .items[?(@.spec.approved==false)]}{.metadata.name},{.spec.clusterServiceVersionNames}{"\n"}{end}'
 
 oc get csv devspacesoperator.v3.29.1 -n openshift-operators -o jsonpath='{.spec.relatedImages}' | jq
@@ -96,3 +144,5 @@ spec:
   storageClassName: qnap-iscsi
   volumeMode: Filesystem
 ```
+
+

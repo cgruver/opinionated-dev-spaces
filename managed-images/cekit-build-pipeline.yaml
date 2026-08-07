@@ -138,6 +138,33 @@ roleRef:
   kind: ClusterRole
   name: pinned-image-sets
 ---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-ist
+  namespace: cekit-images
+rules:
+  - verbs:
+      - get
+      - watch
+    apiGroups:
+      - image.openshift.io
+    resources:
+      - imagestreamtags
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-ist
+  namespace: cekit-images
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cekit-builder-ist
+---
 apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
@@ -314,35 +341,44 @@ spec:
     - name: NODE_EXTRA_CA_CERTS
       value: /tekton-custom-certs/ca-bundle.crt
     script: |
-      cat << EOF > /workspace/source/pinned-images.yaml
-      apiVersion: machineconfiguration.openshift.io/v1
-      kind: PinnedImageSet
-      metadata:
-        name: cekit-builder-images-$(params.image-class)
-      spec:
-        pinnedImages:
-      EOF
-
       cd images/$(params.image-class)
+      touch ist.list
       for image in $(ls *.yaml)
       do
         IMAGE_NAME=$(yq e ".name" ${image})
         IMAGE_TAG=$(yq e ".version" ${image})
+        echo "${IMAGE_NAME}:${IMAGE_TAG}" >> ist.list
         IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
         cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --build-flag --manifest --build-flag ${IMAGE}
         podman manifest push ${IMAGE}
-        IMAGE_SHA=$(podman manifest inspect ${IMAGE} | yq -p json -r '.manifests[0].digest')
-        IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
-        echo "  - name: ${IMAGE_REF}" >> /workspace/source/pinned-images.yaml
         podman manifest rm ${IMAGE}
+       
       done
-  - name: apply-pinnedimageset
+  - name: create-pinnedimageset
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     workingDir: "/workspace/source"
     script: |
-      cat /workspace/source/pinned-images.yaml
-      oc apply -f /workspace/source/pinned-images.yaml
-      rm /workspace/source/pinned-images.yaml
+      cd images/$(params.image-class)
+      cat << EOF > pinned-images.yaml
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: PinnedImageSet
+      metadata:
+        name: cekit-builder-images-$(params.image-class)
+        labels:
+          machineconfiguration.openshift.io/role: master
+      spec:
+        pinnedImages:
+      EOF
+
+      for ist in $(cat ist.list)
+      do
+        IMAGE_SHA=$(oc get imagestreamtag ${ist} -o jsonpath='{.image.metadata.name}')
+        IMAGE_NAME=$(echo ${ist} | cut -d":" -f1)
+        IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
+        echo "  - name: ${IMAGE_REF}" >> pinned-images.yaml
+      done
+      oc apply -f pinned-images.yaml
+      rm pinned-images.yaml
 ---
 apiVersion: tekton.dev/v1
 kind: Task
