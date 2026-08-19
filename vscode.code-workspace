@@ -43,7 +43,7 @@
 		"kilo-code.new.browserAutomation.headless": false,
 		"kilo-code.new.browserAutomation.useSystemChrome": false,
 		"kilo-code.new.model.providerID": "asus-gx10",
-		"kilo-code.new.model.modelID": "nemotron-3-super",
+		"kilo-code.new.model.modelID": "laguna-S-2.1",
 		"yaml.kubernetesCRDStore.enable": true
 	}
 }
