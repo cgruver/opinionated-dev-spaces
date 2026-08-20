@@ -1,0 +1,26 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: devspaces-user-shared-pvc
+  namespace: devspaces
+  labels:
+    app.kubernetes.io/part-of: che.eclipse.org
+    app.kubernetes.io/component: workspaces-config
+objects:
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    annotations:
+      controller.devfile.io/mount-path: /extra-pvc
+    name: extra-storage
+    namespace: cgruver-devspaces
+    labels:
+      controller.devfile.io/mount-to-devworkspace: "true"
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: qnap-iscsi
+    volumeMode: Filesystem
