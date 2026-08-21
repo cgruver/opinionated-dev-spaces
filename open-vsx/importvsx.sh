@@ -2,7 +2,7 @@
 
 set -e
 
-QUERY_RESULT_SIZE=600
+QUERY_RESULT_SIZE=200
 
 function createNamespace() {
   local namespace=${1}
@@ -70,60 +70,32 @@ function checkVersionCompatibility() {
   echo "false"
 }
 
-# My original function that Kilo + Nemotron improved
-# function checkVersionCompatibility() {
-#   local min_ver=${1}
-
-#   min_ver_x=$(echo ${min_ver} | cut -d"." -f1)
-#   min_ver_y=$(echo ${min_ver} | cut -d"." -f2)
-#   min_ver_z=$(echo ${min_ver} | cut -d"." -f3)
-
-#   vscode_ver_x=$(echo ${VSCODE_VERSION} | cut -d"." -f1)
-#   vscode_ver_y=$(echo ${VSCODE_VERSION} | cut -d"." -f2)
-#   vscode_ver_z=$(echo ${VSCODE_VERSION} | cut -d"." -f3)
-
-#   if [[ ${vscode_ver_x} -gt ${min_ver_x} ]]
-#   then
-#     echo "true"
-#     return 0
-#   elif [[ ${vscode_ver_x} -eq ${min_ver_x} ]]
-#   then
-#     if [[ ${vscode_ver_y} -gt ${min_ver_y} ]]
-#     then
-#       echo "true"
-#       return 0
-#     elif [[ ${vscode_ver_y} -eq ${min_ver_y} ]]
-#     then
-#       if [[ ${vscode_ver_z} -ge ${min_ver_z} ]]
-#       then
-#         echo "true"
-#         return 0
-#       fi
-#     fi
-#   fi
-#   echo "false"
-# }
-
 function getCompatibleRelease() {
   local ext_id=${1}
   local results=0
   local index=0
+  local offset=0
+  local num_releases=0
 
-  local ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=${ARCH}&size=${QUERY_RESULT_SIZE}&offset=0" -H 'accept: application/json')
-  results=$(echo "${ext_data}" | jq -r '.totalSize')
-  if [[ ${results} -eq 0 ]]
-  then
-    ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=universal&size=${QUERY_RESULT_SIZE}&offset=0" -H 'accept: application/json')
+  while [[ ${num_releases} == 0 ]]
+  do
+    local ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=${ARCH}&size=${QUERY_RESULT_SIZE}&offset=${offset}" -H 'accept: application/json')
     results=$(echo "${ext_data}" | jq -r '.totalSize')
     if [[ ${results} -eq 0 ]]
     then
-      echo "not-found"
-      return 1
+      ext_data=$(curl -X GET "https://open-vsx.org/api/v2/-/query?extensionId=${ext_id}&includeAllVersions=true&targetPlatform=universal&size=${QUERY_RESULT_SIZE}&offset=${offset}" -H 'accept: application/json')
+      results=$(echo "${ext_data}" | jq -r '.totalSize')
+      if [[ ${results} -eq 0 ]]
+      then
+        echo "not-found"
+        return 1
+      fi
     fi
-  fi
-  ext_data=$(echo "${ext_data}" | jq -c '.extensions[] | select(.preRelease==false)')
-  results=$(echo "${ext_data}" | jq -c -s '. | length')
-  while [[ ${index} -lt ${results} ]]
+    ext_data=$(echo "${ext_data}" | jq -c '.extensions[] | select(.preRelease==false)')
+    num_releases=$(echo "${ext_data}" | jq -c -s '. | length')
+    offset=$(( ${offset} + ${QUERY_RESULT_SIZE} ))
+  done
+  while [[ ${index} -lt ${num_releases} ]]
   do
     vscode_min_ver=$(echo "${ext_data}" | jq -c -s ".[${index}]" | jq -r '.engines.vscode' | sed 's/\^//g')
     if [[ ${vscode_min_ver} == "*" ]]

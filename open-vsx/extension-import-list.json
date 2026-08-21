@@ -84,6 +84,9 @@
       "id": "kilocode.kilo-code"
     },
     {
+      "id": "openai.chatgpt"
+    },
+    {
       "id": "ms-dotnettools.vscode-dotnet-runtime"
     },
     {
