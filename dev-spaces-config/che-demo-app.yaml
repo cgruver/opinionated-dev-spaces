@@ -1,0 +1,21 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: demo-app-devspace
+  labels:
+    app.kubernetes.io/component: getting-started-samples
+    app.kubernetes.io/part-of: che.eclipse.org
+data:
+  demo-app-devspace.json: |+
+    [
+      {
+        "displayName": "Demo App",
+        "description": "Quarkus and Angular Demo App",
+        "tags": ["demo"],
+        "url": "https://github.com/eclipse-che-demo-app/che-demo-app",
+        "icon": {
+          "base64data": "PHN2ZyBoZWlnaHQ9IjY0IiB2aWV3Qm94PSIwIDAgNjQgNjQiIHdpZHRoPSI2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBzdHJva2Utd2lkdGg9Ii4yNTU5ODgiIHRyYW5zZm9ybT0ibWF0cml4KDIuNjAwNjUzNyAwIDAgMi42MDA2NTM3IC0yMS43MTk1MTkgLTQ2LjAxOTYxMikiPjxwYXRoIGQ9Im05Ljk5OTk5OTEgMjguNDkwNDM2djcuNjYxOTkybDEwLjY1NjAzMjkgNi4xNTIxNzEgMTAuNjU2Mjg5LTYuMTUyMTcxdi03LjY2MTk5MmwtMTAuNjU2Mjg5IDYuMTUyNDI4eiIgZmlsbD0iIzUyNWM4NiIvPjxwYXRoIGQ9Im0yMC42NTYwMzIgMTcuNjk1NDAyLTEwLjY1NjAzMjkgNi4xNTIxNzF2Ny42NjE5OTJsMTAuNjU2MDMyOS02LjE1MjQyOCA0LjAyMDgxMSAyLjMyMTU2IDYuNjM1NDc4LTMuODMxMTI0eiIgZmlsbD0iI2ZkYjk0MCIvPjwvZz48L3N2Zz4=",
+          "mediatype": "image/svg"
+        }
+      }
+    ]
