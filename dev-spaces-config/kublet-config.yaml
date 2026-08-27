@@ -1,0 +1,11 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: custom-user-namespaces-idsperpod
+spec:
+  kubeletConfig:
+    userNamespaces:
+      idsPerPod: 131072
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/master: ''
