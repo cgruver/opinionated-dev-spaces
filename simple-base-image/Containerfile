@@ -27,11 +27,9 @@ RUN microdnf --disableplugin=subscription-manager install -y procps-ng openssl g
     chmod 400 /etc/shadow  ; \
     chown -R 1000:1000 ${USER_HOME_DIR} ; \
     #
-    # Add entries for uid and gid mappings for the user
+    # Enable podman to create uid and gid maps for the user
     chown root:user /etc/subuid /etc/subgid ; \
     chmod 664 /etc/subuid /etc/subgid ; \
-    #
-    # Enable podman to create uid and gid maps for the user
     setcap cap_setuid+ep /usr/bin/newuidmap ; \
     setcap cap_setgid+ep /usr/bin/newgidmap
 
