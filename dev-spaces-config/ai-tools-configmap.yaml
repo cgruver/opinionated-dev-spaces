@@ -14,8 +14,14 @@ data:
     {
       "$schema": "https://app.kilo.ai/config.json",
       "permission": {
-        "bash": "allow"
+        "bash": "allow",
+        "external_directory": {
+          "*": "ask",
+          "/projects/*": "allow"
+        }
       },
+      "auto_collapse_reasoning": false,
+      "terminal_command_display": "expanded",
       "mcp": {
         "docs-mcp-server": {
           "type": "remote",

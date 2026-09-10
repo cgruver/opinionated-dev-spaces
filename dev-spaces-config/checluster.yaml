@@ -10,13 +10,6 @@ metadata:
   namespace: devspaces
 spec:                         
   components:
-    imagePuller:
-      enable: true
-      spec:
-        daemonsetName: devworkspace-image-puller
-        deploymentName: devworkspace-image-puller
-        images: 'traefik-rhel9=registry.redhat.io/devspaces/traefik-rhel9@sha256:a94594615d9d52cb42a26b6ef816eeb49db5bb3e24a00724cbdb686363a70cd3;devworkspace-project-clone-rhel9=registry.redhat.io/devworkspace/devworkspace-project-clone-rhel9@sha256:c3c279ce6e0c85f983ec5ece1b9c9e5a7773dd25611f0c15fe2849ce0666deb6;che-code-insiders=quay.io/che-incubator/che-code:insiders;code-rhel9=registry.redhat.io/devspaces/code-rhel9@sha256:11a105b3192f7e1dc0368ae9b5b79b206798164d6a7071a5aecf2cf71c525ca7'
-        nodeSelector: '{"node-role.kubernetes.io/devworkspace":""}'
     cheServer:      
       debug: false
       logLevel: INFO
