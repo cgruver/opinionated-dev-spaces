@@ -5,7 +5,7 @@ metadata:
 spec:
   kubeletConfig:
     userNamespaces:
-      idsPerPod: 131072
+      idsPerPod: 65536
   machineConfigPoolSelector:
     matchLabels:
       pools.operator.machineconfiguration.openshift.io/master: ''
