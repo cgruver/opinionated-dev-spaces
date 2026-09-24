@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi10-minimal
+FROM registry.access.redhat.com/ubi10
 
 ENV HOME=/projects
 ENV BUILDAH_ISOLATION=chroot
@@ -8,9 +8,10 @@ USER 0
 COPY --chown=0:0 entrypoint.sh /
 COPY --chown=0:0 mount-share.sh /
 
-RUN microdnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh podman buildah skopeo python3-pip python3-devel aardvark-dns fuse-overlayfs util-linux vim-minimal vim-enhanced sudo ; \
-    microdnf update -y ; \
-    microdnf clean all ; \
+RUN dnf --disableplugin=subscription-manager install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm ; \
+    dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh podman buildah skopeo python3-pip python3-devel aardvark-dns fuse-overlayfs util-linux vim-minimal vim-enhanced sudo rclone fuse3 ; \
+    dnf update -y ; \
+    dnf clean all ; \
     pip3 install podman-compose ; \
     chmod +x /entrypoint.sh ; \
     chmod +x /mount-share.sh ; \

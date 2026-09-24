@@ -63,11 +63,11 @@ spec:
   - annotations: null
     from:
       kind: DockerImage
-      name: registry.access.redhat.com/ubi10:10.1
+      name: registry.access.redhat.com/ubi10:10.2
     generation: 1
     importPolicy:
       importMode: Legacy
-    name: "10.1"
+    name: "10.2"
     referencePolicy:
       type: Source
 ---
