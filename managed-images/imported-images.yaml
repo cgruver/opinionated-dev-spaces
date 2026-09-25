@@ -83,7 +83,7 @@ spec:
   - annotations: null
     from:
       kind: DockerImage
-      name: registry.access.redhat.com/ubi9:9.6
+      name: registry.access.redhat.com/ubi9:9.8
     generation: 1
     importPolicy:
       importMode: Legacy
