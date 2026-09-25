@@ -11,7 +11,7 @@ metadata:
   namespace: openshift-devspaces
 rules:
   - apiGroups:
-      - operators.coreos.com/v1alpha1
+      - operators.coreos.com
     resources:
       - clusterserviceversions
     verbs:
