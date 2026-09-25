@@ -1,11 +1,22 @@
 # OpenShift Pipelines - Tekton
 
 ```yaml
+apiVersion: v1                      
+kind: Namespace                 
+metadata:
+  name: openshift-pipelines
+--- 
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-pipelines-operator
+  namespace: openshift-pipelines
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: openshift-pipelines-operator
-  namespace: openshift-operators
+  namespace: openshift-pipelines
 spec:
   channel:  latest
   name: openshift-pipelines-operator-rh
