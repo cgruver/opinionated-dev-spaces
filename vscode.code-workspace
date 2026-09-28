@@ -35,7 +35,7 @@
 		"editor.wordWrap": "on",
 		"files.autoSave": "off",
 		"zoo-code.autoImportSettingsPath": "/globalconfig/zoo-code-settings.json",
-		"chat.disableAIFeatures": false,
+		"chat.disableAIFeatures": true,
 		"kilo-code.new.autocomplete.enableAutoTrigger": false,
 		"kilo-code.new.autocomplete.enableChatAutocomplete": false,
 		"kilo-code.new.autocomplete.enableSmartInlineTaskKeybinding": false,
