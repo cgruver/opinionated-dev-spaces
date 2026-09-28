@@ -18,7 +18,7 @@ oc wait --for=condition=Available deployment/open-vsx-server -n che-openvsx --ti
 ```bash
 OVSX_URL=https://$(oc get route open-vsx-server -n che-openvsx -o jsonpath={.spec.host})
 
-oc patch CheCluster devspaces -n devspaces --type merge --patch "{\"spec\":{\"components\":{\"pluginRegistry\":{\"openVSXURL\":\"${OVSX_URL}\"}}}}"
+oc patch CheCluster devspaces -n openshift-devspaces --type merge --patch "{\"spec\":{\"components\":{\"pluginRegistry\":{\"openVSXURL\":\"${OVSX_URL}\"}}}}"
 ```
 
 ### Create an Access Token to be used for importing extensions

@@ -6,15 +6,13 @@ ENV BUILDAH_ISOLATION=chroot
 USER 0
 
 COPY --chown=0:0 entrypoint.sh /
-COPY --chown=0:0 mount-share.sh /
 
 RUN dnf --disableplugin=subscription-manager install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm ; \
-    dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh podman buildah skopeo python3-pip python3-devel aardvark-dns fuse-overlayfs util-linux vim-minimal vim-enhanced sudo rclone fuse3 ; \
+    dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh podman buildah skopeo python3-pip python3-devel aardvark-dns fuse-overlayfs util-linux vim-minimal vim-enhanced rclone fuse3 ; \
     dnf update -y ; \
     dnf clean all ; \
     pip3 install podman-compose ; \
     chmod +x /entrypoint.sh ; \
-    chmod +x /mount-share.sh ; \
     ##
     ## Setup for root-less podman
     ##
@@ -30,13 +28,14 @@ RUN dnf --disableplugin=subscription-manager install -y https://dl.fedoraproject
     chown -R 1000:1000 ${HOME} ; \
     #
     # Add entries for uid and gid mappings for the user
-    echo "user:1001:64535" > /etc/subuid ; \
-    echo "user:1001:64535" > /etc/subgid ; \
+    echo "user:1:999" > /etc/subuid ; \
+    echo "user:1:999" > /etc/subgid ; \
+    echo "user:1001:64535" >> /etc/subuid ; \
+    echo "user:1001:64535" >> /etc/subgid ; \
     #
     # Enable podman to create uid and gid maps for the user
     setcap cap_setuid+ep /usr/bin/newuidmap ; \
-    setcap cap_setgid+ep /usr/bin/newgidmap ; \
-    echo "user ALL=NOPASSWD: /mount-share.sh" >> /etc/sudoers
+    setcap cap_setgid+ep /usr/bin/newgidmap
 
 # The SCC that we are using will ensure that the user runs as UID 1000 in its own user namespace on the host node.
 USER 1000
