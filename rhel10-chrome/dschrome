@@ -18,10 +18,10 @@ function startChrome() {
   fi
   rm -f ${HOME}/.config/google-chrome/Singleton{Cookie,Lock,Socket}
   VNC_PASSWD=$(genVncPasswd)
-  echo -e "${VNC_PASSWD}\n${VNC_PASSWD}\n" | vncpasswd -w -u devspaces /tmp/vncpasswd
+  echo -e "${VNC_PASSWD}\n${VNC_PASSWD}\n" | vncpasswd -w -u devspaces ${HOME}/.kasmpasswd 
 
   echo ${VNC_PASSWD} > /tmp/vncsec
-  /usr/bin/vncserver :0 -nolisten tcp -UseIPv4 -interface lo -localhost -SecurityTypes VncAuth -PasswordFile=/tmp/vncpasswd -desktop chrome -nevershared -noclipboard -noreset -DisconnectClients -geometry 1280x1024 -depth 24 -verbose -httpdPort 8444 > /tmp/xvnc.out 2>&1 &
+  /usr/bin/vncserver :0 -UseIPv4 -desktop chrome -nevershared -noclipboard -noreset -DisconnectClients -geometry 1280x1024 -depth 24 -verbose -httpdPort 8444 > /tmp/xvnc.out 2>&1 &
   
   sudo dbus-daemon --system --fork
   export $(dbus-launch)

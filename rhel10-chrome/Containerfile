@@ -40,6 +40,7 @@ RUN dnf --disableplugin=subscription-manager install -y procps-ng openssl git ta
     setcap cap_setgid+ep /usr/bin/newgidmap ; \
     #
     # Chrome Setup
+    chmod 644 /etc/pki/tls/private/kasmvnc.pem ; \
     rm -f /var/lib/dbus/machine-id /etc/machine-id ; \
     dbus-uuidgen --ensure=/etc/machine-id ; \
     mkdir -p /var/lib/dbus ; \
