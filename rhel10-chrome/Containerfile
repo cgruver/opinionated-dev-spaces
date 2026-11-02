@@ -9,8 +9,9 @@ USER 0
 COPY --chown=0:0 entrypoint.sh /
 COPY --chown=0:0 centos.repo /etc/yum.repos.d/
 COPY --chown=0:0 dschrome /usr/local/bin/dschrome
+# COPY --chown=0:0 kasmvnc.yaml /etc/kasmvnc/kasmvnc.yaml
 
-RUN dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh mesa-dri-drivers xorg-x11-server-Xwayland util-linux vim-minimal vim-enhanced google-chrome-stable podman dbus-x11 ; \
+RUN dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh mesa-dri-drivers xorg-x11-server-Xwayland util-linux vim-minimal vim-enhanced google-chrome-stable podman dbus-x11 nginx ; \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm ; \
     dnf install -y https://github.com/kasmtech/KasmVNC/releases/download/v1.5.2/kasmvncserver_fedora_42_1.5.2_x86_64.rpm ; \
     # dnf update -y ; \
@@ -44,7 +45,14 @@ RUN dnf --disableplugin=subscription-manager install -y procps-ng openssl git ta
     rm -f /var/lib/dbus/machine-id /etc/machine-id ; \
     dbus-uuidgen --ensure=/etc/machine-id ; \
     mkdir -p /var/lib/dbus ; \
-    ln -sf /etc/machine-id /var/lib/dbus/machine-id
+    ln -sf /etc/machine-id /var/lib/dbus/machine-id ; \
+    #
+    # Nginx for proxy
+    mkdir -p /var/run/nginx ; \
+    chown -R user:user /var/log/nginx ; \
+    chown -R user:user /var/lib/nginx ; \
+    chown -R user:user /var/run/nginx ; \
+    chown -R user:user /etc/nginx
 
 # The SCC that we are using will ensure that the user runs as UID 1000 in its own user namespace on the host node.
 USER 1000

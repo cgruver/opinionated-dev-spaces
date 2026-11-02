@@ -18,14 +18,20 @@ function startChrome() {
   fi
   rm -f ${HOME}/.config/google-chrome/Singleton{Cookie,Lock,Socket}
   VNC_PASSWD=$(genVncPasswd)
-  echo -e "${VNC_PASSWD}\n${VNC_PASSWD}\n" | vncpasswd -w -u devspaces ${HOME}/.kasmpasswd 
+  echo -e "${VNC_PASSWD}\n${VNC_PASSWD}\n" | vncpasswd -w -r -u user ${HOME}/.kasmpasswd 
 
   echo ${VNC_PASSWD} > /tmp/vncsec
-  /usr/bin/vncserver :0 -UseIPv4 -desktop chrome -nevershared -noclipboard -noreset -DisconnectClients -geometry 1280x1024 -depth 24 -verbose -httpdPort 8444 > /tmp/xvnc.out 2>&1 &
-  
-  sudo dbus-daemon --system --fork
+  if [ ! -d ${HOME}/.vnc ]
+  then
+    mkdir ${HOME}/.vnc
+    touch ${HOME}/.vnc/.de-was-selected
+    (echo "#!/bin/sh";echo "unset SESSION_MANAGER";echo "unset DBUS_SESSION_BUS_ADDRESS";echo "echo starting Xvnc") > ${HOME}/.vnc/xstartup
+  fi
+  /usr/bin/vncserver :0 -disableBasicAuth
+
+  # dbus-daemon --system --fork
   export $(dbus-launch)
-  /usr/bin/google-chrome --display=:0 --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage --disable-plugins --disable-plugins-discovery --disable-notifications --disable-sync --mute-audio --dns-prefetch-disable --noremote --window-size=1280,1024 > /tmp/chrome.out 2>&1 &
+  /usr/bin/google-chrome --display=:0 --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage --disable-plugins --disable-plugins-discovery --disable-notifications --disable-sync --mute-audio --dns-prefetch-disable --noremote --start-maximized > /tmp/chrome.out 2>&1 &
 
   echo "Use this password to access the Chrome Browser:"
   echo ""
