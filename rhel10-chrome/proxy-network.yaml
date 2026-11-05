@@ -1,0 +1,24 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: proxy
+spec:
+  to:
+    kind: Service
+    name: proxy
+  tls:
+    termination: Reencrypt
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxy
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: proxy-tls
+spec:
+  ports:
+  - name: proxy
+    port: 443
+    targetPort: 8443
+  selector:
+    app: proxy
