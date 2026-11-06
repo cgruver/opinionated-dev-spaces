@@ -84,6 +84,19 @@ spec:
                 - name: ${traefik}
                 - name: ${project_clone}
               EOF
+              cat << EOF | oc apply -f -
+              apiVersion: machineconfiguration.openshift.io/v1
+              kind: PinnedImageSet
+              metadata:
+                name: devspaces-images
+                labels:
+                  machineconfiguration.openshift.io/role: master
+              spec:
+                pinnedImages:
+                - name: ${che_code}
+                - name: ${traefik}
+                - name: ${project_clone}
+              EOF
           resources:
             requests:
               cpu: 100m
