@@ -1,0 +1,163 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cekit-images-image-puller-serviceaccounts
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cekit-images-image-puller-users
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-puller
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:authenticated
+---
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: pipeline-user-namespaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+priority: null
+allowPrivilegeEscalation: true
+allowedCapabilities:
+- SETUID
+- SETGID
+- CHOWN
+fsGroup:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 65534
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+seLinuxContext:
+  type: MustRunAs
+  seLinuxOptions:
+    type: container_engine_t
+supplementalGroups:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 65534
+userNamespaceLevel: RequirePodLevel
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cekit-builder
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-user-namespaces
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - verbs:
+      - use
+    apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - pipeline-user-namespaces
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-user-namespaces
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cekit-builder-user-namespaces
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cekit-image-builder
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-builder
+subjects:
+- kind: ServiceAccount
+  name: cekit-builder
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-pinned-image-sets
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+    namespace: workspace-images
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pinned-image-sets
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-ist
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - verbs:
+      - get
+      - watch
+    apiGroups:
+      - image.openshift.io
+    resources:
+      - imagestreamtags
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-builder-ist
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cekit-builder-ist

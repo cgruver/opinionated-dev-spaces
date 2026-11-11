@@ -283,6 +283,21 @@ metadata:
 - --openshift-service-account=workspaced50a06d73e854abd-sa
 
 
+# Notes:
+
+```yaml
+attributes:
+  controller.devfile.io/devworkspace-config:
+    name: <string>
+    namespace: <string>
+
+attributes:
+    workspace.devfile.io/service-account-annotations: |
+      {"serviceaccounts.openshift.io/oauth-redirectreference.primary":"{\"kind\":\"OAuthRedirectReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"Route\",\"name\":\"proxy\"}}"}
+
+```
+
+
 
 {"level":"info","ts":"2026-11-03T20:14:27Z","msg":"spec.template.spec.containers[0].env[16]: hides previous definition of \"HOST_USERS\", which may be dropped when using apply","controller":"devworkspace","controllerGroup":"workspace.devfile.io","controllerKind":"DevWorkspace","DevWorkspace":{"name":"devspaces-chrome","namespace":"cgruver-devspaces"},"namespace":"cgruver-devspaces","name":"devspaces-chrome","reconcileID":"8347fd61-e82c-43e2-af36-d574d74291ff"}
 {"level":"info","ts":"2026-11-03T20:14:27Z","msg":"spec.template.spec.containers[1].env[9]: hides previous definition of \"HOST_USERS\", which may be dropped when using apply","controller":"devworkspace","controllerGroup":"workspace.devfile.io","controllerKind":"DevWorkspace","DevWorkspace":{"name":"devspaces-chrome","namespace":"cgruver-devspaces"},"namespace":"cgruver-devspaces","name":"devspaces-chrome","reconcileID":"8347fd61-e82c-43e2-af36-d574d74291ff"}

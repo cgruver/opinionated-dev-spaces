@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: workspace-images
+  namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: cluster-app-of-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  destination:
+    namespace: workspace-images
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: cluster-gitops/components/workspace-images
+    repoURL: https://github.com/cgruver/opinionated-dev-spaces.git
+    targetRevision: main
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 2m0s
+      limit: 30
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
+  ignoreDifferences:
+  - group: image.openshift.io
+    kind: ImageStream
+    jsonPointers:
+      - /metadata/annotations
+      - /metadata/labels
+      - /spec/status
+      - /status
+      - /spec/tags/generation
+  - group: tekton.dev
+    kind: Task
+    jsonPointers:
+      - /metadata/annotations
+      - /metadata/labels
+      - /spec/generation
+      - /status

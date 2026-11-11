@@ -1,0 +1,19 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: ubi10
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - from:
+      kind: DockerImage
+      name: registry.access.redhat.com/ubi10:10.2
+    importPolicy:
+      importMode: Legacy
+    name: "10.2"
+    referencePolicy:
+      type: Source

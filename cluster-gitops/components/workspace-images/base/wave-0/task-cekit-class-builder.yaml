@@ -1,0 +1,107 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cekit-class-builder
+  namespace: workspace-images
+  annotations:
+    io.kubernetes.cri-o.Devices: '/dev/fuse,/dev/net/tun'
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  params:
+  - name: registry
+    type: string
+    description: Image registry that built images will be pushed to
+  - name: registry-path
+    type: string
+    description: Path to the image within the registry
+  - name: image-class
+    type: string
+    description: The group of images to be built.  base, utility, app-product
+  - name: repository
+    type: string
+    description: The git repository to pull the image and module descriptors from.
+  - name: revision
+    type: string
+    description: The repository branch to clone.
+    default: "main"
+  stepTemplate:
+    securityContext:
+      capabilities:
+        add:
+          - SETGID
+          - SETUID
+        drop:
+          - ALL
+      runAsUser: 1000
+      runAsNonRoot: true
+      readOnlyRootFilesystem: false
+      allowPrivilegeEscalation: true
+      procMount: Unmasked
+  steps:
+  - name: clone
+    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    script: |
+      git clone -b $(params.revision) --single-branch $(params.repository) /workspace/source
+  - name: build
+    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    workingDir: "/workspace/source"
+    env:
+    - name: NODE_EXTRA_CA_CERTS
+      value: /tekton-custom-certs/ca-bundle.crt
+    - name: BUILDAH_LAYERS
+      value: 'false'
+    script: |
+      cd images/$(params.image-class)
+      for image in $(ls *.yaml)
+      do
+        if [[ $(yq 'tag == "!!seq"' ${image}) == "true" ]]
+        then
+          # Multi Stage Build (Final image is the last one in the array)
+          IMAGE_NAME=$(yq ".[-1].name" ${image})
+          IMAGE_TAG=$(yq ".[-1].version" ${image})
+        else
+          IMAGE_NAME=$(yq ".name" ${image})
+          IMAGE_TAG=$(yq ".version" ${image})
+        fi
+        echo "${IMAGE_NAME}:${IMAGE_TAG}" >> ist.list
+        IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
+        cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --build-flag --manifest --build-flag ${IMAGE}
+        podman manifest push ${IMAGE}
+        podman manifest rm ${IMAGE}
+      done
+  - name: create-pinnedimageset
+    image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+    workingDir: "/workspace/source"
+    script: |
+      cd images/$(params.image-class)
+      cat << EOF > pinned-images.yaml
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: PinnedImageSet
+      metadata:
+        name: cekit-builder-images-$(params.image-class)
+        labels:
+          machineconfiguration.openshift.io/role: master
+      spec:
+        pinnedImages:
+      EOF
+      cat << EOF > workspace-images-worker.yaml
+      apiVersion: machineconfiguration.openshift.io/v1
+      kind: PinnedImageSet
+      metadata:
+        name: cekit-builder-images-worker$(params.image-class)
+        labels:
+          machineconfiguration.openshift.io/role: worker
+      spec:
+        pinnedImages:
+      EOF
+      for ist in $(cat ist.list)
+      do
+        IMAGE_SHA=$(oc get imagestreamtag ${ist} -o jsonpath='{.image.metadata.name}')
+        IMAGE_NAME=$(echo ${ist} | cut -d":" -f1)
+        IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
+        echo "  - name: ${IMAGE_REF}" >> workspace-images-worker.yaml
+        echo "  - name: ${IMAGE_REF}" >> workspace-images-master.yaml
+      done
+      oc apply -f workspace-images-master.yaml
+      oc apply -f workspace-images-worker.yaml
+      rm workspace-images-master.yaml workspace-images-worker.yaml

@@ -340,19 +340,26 @@ spec:
     env:
     - name: NODE_EXTRA_CA_CERTS
       value: /tekton-custom-certs/ca-bundle.crt
+    - name: BUILDAH_LAYERS
+      value: 'false'
     script: |
       cd images/$(params.image-class)
-      touch ist.list
       for image in $(ls *.yaml)
       do
-        IMAGE_NAME=$(yq e ".name" ${image})
-        IMAGE_TAG=$(yq e ".version" ${image})
+        if [[ $(yq 'tag == "!!seq"' ${image}) == "true" ]]
+        then
+          # Multi Stage Build (Final image is the last one in the array)
+          IMAGE_NAME=$(yq ".[-1].name" ${image})
+          IMAGE_TAG=$(yq ".[-1].version" ${image})
+        else
+          IMAGE_NAME=$(yq ".name" ${image})
+          IMAGE_TAG=$(yq ".version" ${image})
+        fi
         echo "${IMAGE_NAME}:${IMAGE_TAG}" >> ist.list
         IMAGE="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}:${IMAGE_TAG}"
         cekit --descriptor ${image} build podman --build-flag --volume --build-flag ${NODE_EXTRA_CA_CERTS}:${NODE_EXTRA_CA_CERTS}:ro,Z --build-arg NODE_EXTRA_CA_CERTS=${NODE_EXTRA_CA_CERTS} --build-flag --manifest --build-flag ${IMAGE}
         podman manifest push ${IMAGE}
         podman manifest rm ${IMAGE}
-       
       done
   - name: create-pinnedimageset
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest

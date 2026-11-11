@@ -1,0 +1,60 @@
+---
+apiVersion: org.eclipse.che/v2
+kind: CheCluster
+metadata:
+  name: devspaces
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:                         
+  components:                  
+    cheServer:      
+      debug: false
+      logLevel: INFO
+    metrics:                
+      enable: true
+    pluginRegistry:
+      openVSXURL: https://open-vsx.org
+    devfileRegistry:
+      disableInternalRegistry: true   
+  containerRegistry: {}   
+  devEnvironments:       
+    startTimeoutSeconds: 300
+    secondsOfRunBeforeIdling: -1
+    maxNumberOfWorkspacesPerUser: -1
+    maxNumberOfRunningWorkspacesPerUser: 5
+    containerBuildConfiguration:
+      openShiftSecurityContextConstraint: container-build
+    disableContainerBuildCapabilities: false
+    disableContainerRunCapabilities: false
+    defaultComponents:
+    - name: dev-tools
+      container:
+        image: quay.io/cgruver0/che/dev-tools:latest
+        memoryLimit: 6Gi
+        mountSources: true
+    defaultEditor: che-incubator/che-code/latest
+    defaultNamespace:
+      autoProvision: true
+      template: <username>-devspaces
+    secondsOfInactivityBeforeIdling: 1800
+    storage:
+      pvcStrategy: per-workspace
+    persistUserHome:
+      enabled: false
+    containerResourceCaps:
+      limits:
+        cpu: "4"
+        memory: "16Gi"
+      requests:
+        cpu: "200m"
+        memory: "4Gi"
+    defaultContainerResources:
+      limits:
+        cpu: "1"
+        memory: "4Gi"
+      requests:
+        cpu: "100m"
+        memory: "1Gi"
+  gitServices: {}
+  networking: {}

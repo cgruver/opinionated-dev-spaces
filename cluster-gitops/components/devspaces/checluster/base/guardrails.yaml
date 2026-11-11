@@ -1,0 +1,50 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: devspaces-user-resource-limits
+  namespace: openshift-devspaces
+  labels:
+    app.kubernetes.io/part-of: che.eclipse.org
+    app.kubernetes.io/component: workspaces-config
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+objects:
+- apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    name: devspaces-user-resource-quota
+  spec:
+    hard:
+      limits.cpu: '6'
+      limits.memory: 32Gi
+      requests.cpu: '1'
+      requests.memory: 8Gi
+      requests.storage: 200Gi
+- apiVersion: v1
+  kind: LimitRange
+  metadata:
+    name: devspaces-user-resource-limit-range
+  spec:
+    limits:
+      - type: Container
+        default:
+          cpu: '1'
+          memory: 4Gi
+        defaultRequest:
+          cpu: 100m
+          memory: 512Mi
+---
+apiVersion: controller.devfile.io/v1alpha1
+kind: DevWorkspaceOperatorConfig
+metadata:
+  name: devworkspace-operator-config
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+config:
+  workspace:
+    cleanupCronJob:
+      dryRun: false
+      enable: true
+      retainTime: 2592000
+      schedule: 0 0 1 * *

@@ -11,6 +11,12 @@
 		{
 			"name": "kamarotos",
 			"path": "/projects/kamarotos"
+		},
+		{
+			"path": "../importvsx"
+		},
+		{
+			"path": "../lab-config"
 		}
 	],
 	"extensions": {

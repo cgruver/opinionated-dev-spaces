@@ -9,7 +9,7 @@ USER 0
 COPY --chown=0:0 entrypoint.sh /
 COPY --chown=0:0 centos.repo /etc/yum.repos.d/
 COPY --chown=0:0 dschrome /usr/local/bin/dschrome
-# COPY --chown=0:0 kasmvnc.yaml /etc/kasmvnc/kasmvnc.yaml
+COPY --chown=0:0 kasmvnc.yaml /etc/kasmvnc/kasmvnc.yaml
 
 RUN dnf --disableplugin=subscription-manager install -y procps-ng openssl git tar shadow-utils bash zsh mesa-dri-drivers xorg-x11-server-Xwayland util-linux vim-minimal vim-enhanced google-chrome-stable podman dbus-x11 nginx ; \
     dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm ; \

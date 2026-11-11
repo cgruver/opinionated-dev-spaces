@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - base/devspaces.yaml
+  - base/openshift-pipelines.yaml
+  - base/patch-gitops.yaml
+  - base/workspace-images.yaml
