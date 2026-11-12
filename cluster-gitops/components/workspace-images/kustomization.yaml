@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- wave-0/cekit-builder-buildconfig.yaml  
+- wave-0/cekit-builder-rbac.yaml  
+- wave-0/imagestream-ubi10.yaml  
+- wave-0/imagestream-ubi9.yaml
+- wave-0/wait-for-operator-job.yaml
+- wave-1/pipeline-cekit-build-all.yaml  
+- wave-1/task-cekit-class-builder.yaml
+- wave-1/cekit-builder-image.yaml  
+- wave-1/job-update-global-pull-secret.yaml
+- wave-2/job-pipelinerun-cekit-builder.yaml
+

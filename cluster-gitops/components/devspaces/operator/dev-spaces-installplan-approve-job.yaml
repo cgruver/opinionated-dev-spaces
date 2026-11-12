@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: dev-spaces-installplan-approver
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: dev-spaces-installplan-approver
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+rules:
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "installplans"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "update"
+      - "patch"
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: dev-spaces-installplan-approver
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+subjects:
+  - kind: ServiceAccount
+    name: dev-spaces-installplan-approver
+    namespace: openshift-devspaces
+roleRef:
+  kind: Role
+  name: dev-spaces-installplan-approver
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dev-spaces-installplan-approve
+  namespace: openshift-devspaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  # ttlSecondsAfterFinished: 1200
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: dev-spaces-installplan-approver
+      containers:
+      - name: patch
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            echo "Waiting for Dev Spaces InstallPlan to exist..."
+            
+            install_plan=""
+            until [[ ${install_plan} != "" ]]
+            do
+              oc get installplan
+              STARTING_CSV=$(oc get subscription -n openshift-devspaces devspaces -o jsonpath='{.spec.startingCSV}')
+              install_plan=$(oc get installplan -n openshift-devspaces | grep ${STARTING_CSV} | cut -d" " -f1)
+              if [[ ${install_plan} == "" ]]
+              then
+                sleep 15
+              fi
+            done
+            oc patch installplan ${install_plan} -n openshift-devspaces --type merge --patch '{"spec":{"approved":true }}'
+            echo "Dev Spaces InstallPlan Approved"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]

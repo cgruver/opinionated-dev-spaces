@@ -5,6 +5,8 @@ metadata:
   namespace: openshift-devspaces
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -13,6 +15,8 @@ metadata:
   namespace: openshift-devspaces
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 rules:
   - apiGroups:
       - operators.coreos.com
@@ -30,6 +34,8 @@ metadata:
   namespace: openshift-devspaces
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 subjects:
   - kind: ServiceAccount
     name: dev-spaces-image-pin
@@ -44,6 +50,8 @@ metadata:
   name: dev-spaces-image-pinned-image-sets
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 subjects:
   - kind: ServiceAccount
     name: dev-spaces-image-pin
@@ -60,6 +68,8 @@ metadata:
   namespace: openshift-devspaces
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 spec:
   ttlSecondsAfterFinished: 600
   backoffLimit: 10

@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipelines-wait-for-operator
+  namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pipelines-wait-for-operator
+  namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+rules:
+  - apiGroups: ["operators.coreos.com"]
+    resources: ["clusterserviceversions"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipelines-wait-for-operator
+  namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-wait-for-operator
+subjects:
+  - kind: ServiceAccount
+    name: pipelines-wait-for-operator
+    namespace: openshift-pipelines
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pipelines-wait-for-operator
+  namespace: openshift-pipelines
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: pipelines-wait-for-operator
+      containers:
+        - name: wait
+          image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              NS="openshift-pipelines"
+
+              echo "Waiting for Pipelines CSV to succeed in ${NS}..."
+              until CSV=$(oc get csv -n ${NS} --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep openshift-pipelines-operator-rh | head -1) && \
+                    [ -n "${CSV}" ] && \
+                    [ "$(oc get csv ${CSV} -n ${NS} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
+                echo "  ...CSV not ready yet"
+                sleep 10
+              done
+              echo "CSV ${CSV} succeeded."
+
