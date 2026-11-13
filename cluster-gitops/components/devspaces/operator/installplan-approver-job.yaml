@@ -89,7 +89,7 @@ spec:
               STARTING_CSV=$(oc get subscription -o jsonpath='{.spec.startingCSV}')
               for INSTALL_PLAN in $(oc get installplan -o name)
               do
-                for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames}' | jq -r ".[]")
+                for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
                 do
                   if [[ ${CSV} == ${STARTING_CSV} ]]
                   then
