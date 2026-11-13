@@ -41,7 +41,6 @@ allowPrivilegeEscalation: true
 allowedCapabilities:
 - SETUID
 - SETGID
-- CHOWN
 fsGroup:
   type: MustRunAs
   ranges:
