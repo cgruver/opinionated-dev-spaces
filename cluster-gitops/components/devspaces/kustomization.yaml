@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- operator/dev-spaces-installplan-approve-job.yaml
+- operator/installplan-approver-job.yaml
 - operator/dev-spaces-operator.yaml
 - operator/wait-for-operator-job.yaml
 - checluster/checluster.yaml

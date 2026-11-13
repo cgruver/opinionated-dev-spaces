@@ -80,21 +80,31 @@ spec:
           - /bin/bash
           - -c
           - |
-            echo "Waiting for Dev Spaces InstallPlan to exist..."
+            echo "Waiting for Operator InstallPlan to exist..."
             
-            install_plan=""
-            until [[ ${install_plan} != "" ]]
+            APPROVED="false"
+            until [[ ${APPROVED} == "true" ]]
             do
               oc get installplan
-              STARTING_CSV=$(oc get subscription -n openshift-devspaces devspaces -o jsonpath='{.spec.startingCSV}')
-              install_plan=$(oc get installplan -n openshift-devspaces | grep ${STARTING_CSV} | cut -d" " -f1)
-              if [[ ${install_plan} == "" ]]
-              then
-                sleep 15
-              fi
+              STARTING_CSV=$(oc get subscription -o jsonpath='{.spec.startingCSV}')
+              for INSTALL_PLAN in $(oc get installplan -o name)
+              do
+                for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames}' | jq -r ".[]")
+                do
+                  if [[ ${CSV} == ${STARTING_CSV} ]]
+                  then
+                    oc patch installplan ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                    echo "Operator InstallPlan Approved"
+                    APPROVED="true"
+                  fi
+                done
+                if [[ ${APPROVED} == "false" ]]
+                then
+                  sleep 5
+                fi
+              done
             done
-            oc patch installplan ${install_plan} -n openshift-devspaces --type merge --patch '{"spec":{"approved":true }}'
-            echo "Dev Spaces InstallPlan Approved"
+            
         resources:
           requests:
             cpu: 50m

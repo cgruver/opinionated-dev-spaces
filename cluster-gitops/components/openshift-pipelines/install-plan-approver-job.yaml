@@ -6,6 +6,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: pipelines-installplan-approver
+  namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
     argocd.argoproj.io/hook: Sync
@@ -15,6 +16,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: pipelines-installplan-approver
+  namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
     argocd.argoproj.io/hook: Sync
@@ -43,6 +45,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: pipelines-installplan-approver
+  namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
     argocd.argoproj.io/hook: Sync
@@ -60,6 +63,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: pipelines-installplan-approve
+  namespace: openshift-pipelines
   annotations:
     argocd.argoproj.io/sync-wave: "0"
     argocd.argoproj.io/hook: Sync
@@ -77,22 +81,29 @@ spec:
           command:
             - /bin/bash
             - -c
-            - |
-              echo "Waiting for Pipelines InstallPlan to exist..."
-
-              install_plan=""
-              until [[ ${install_plan} != "" ]]
+            - |            
+              APPROVED="false"
+              until [[ ${APPROVED} == "true" ]]
               do
                 oc get installplan
                 STARTING_CSV=$(oc get subscription openshift-pipelines-operator -o jsonpath='{.spec.startingCSV}')
-                install_plan=$(oc get installplan | grep ${STARTING_CSV} | cut -d" " -f1)
-                if [[ ${install_plan} == "" ]]
-                then
-                  sleep 15
-                fi
+                for INSTALL_PLAN in $(oc get installplan -o name)
+                do
+                  for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames}' | jq -r ".[]")
+                  do
+                    if [[ ${CSV} == ${STARTING_CSV} ]]
+                    then
+                      oc patch installplan ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                      echo "Operator InstallPlan Approved"
+                      APPROVED="true"
+                    fi
+                  done
+                  if [[ ${APPROVED} == "false" ]]
+                  then
+                    sleep 5
+                  fi
+                done
               done
-              oc patch installplan ${install_plan} --type merge --patch '{"spec":{"approved":true }}'
-              echo "Pipelines InstallPlan Approved"
           resources:
             requests:
               cpu: 50m
