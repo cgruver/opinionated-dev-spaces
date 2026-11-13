@@ -10,12 +10,15 @@ spec:
   - name: registry
     type: string
     description: Image registry that built images will be pushed to
+    default: "image-registry.openshift-image-registry.svc:5000"
   - name: registry-path
     type: string
     description: Path to the image within the registry
+    default: "workspace-images"
   - name: repository
     type: string
     description: The git repository to pull the image and module descriptors from.
+    default: "https://github.com/cgruver/cekit-image-library.git"
   - name: revision
     type: string
     description: The repository branch to clone.
