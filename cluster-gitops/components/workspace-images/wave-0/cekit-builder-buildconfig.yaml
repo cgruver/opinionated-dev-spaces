@@ -13,7 +13,7 @@ spec:
     contextDir: "managed-images/cekit-builder-image"
   strategy:
     dockerStrategy:
-      dockerfilePath: "./Containerfile"
+      dockerfilePath: "Containerfile"
   output:
     to:
       kind: DockerImage
