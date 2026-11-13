@@ -39,11 +39,11 @@ spec:
       procMount: Unmasked
   steps:
   - name: clone
-    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    image: image-registry.openshift-image-registry.svc:5000/workspace-images/cekit-builder:latest
     script: |
       git clone -b $(params.revision) --single-branch $(params.repository) /workspace/source
   - name: build
-    image: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+    image: image-registry.openshift-image-registry.svc:5000/workspace-images/cekit-builder:latest
     workingDir: "/workspace/source"
     env:
     - name: NODE_EXTRA_CA_CERTS

@@ -17,4 +17,4 @@ spec:
   output:
     to:
       kind: DockerImage
-      name: image-registry.openshift-image-registry.svc:5000/cekit-images/cekit-builder:latest
+      name: image-registry.openshift-image-registry.svc:5000/workspace-images/cekit-builder:latest
