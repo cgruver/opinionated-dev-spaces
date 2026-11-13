@@ -42,6 +42,8 @@ spec:
                 pipelineRef:
                   name: cekit-build-all
                 taskRunTemplate:
+                  podTemplate:
+                    hostUsers: false
                   serviceAccountName: cekit-builder
               EOF
           resources:
