@@ -93,7 +93,7 @@ spec:
                   do
                     if [[ ${CSV} == ${STARTING_CSV} ]]
                     then
-                      oc patch installplan ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                      oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
                       echo "Operator InstallPlan Approved"
                       APPROVED="true"
                     fi
