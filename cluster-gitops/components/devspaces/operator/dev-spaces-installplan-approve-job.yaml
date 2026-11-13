@@ -30,7 +30,14 @@ rules:
       - "watch"
       - "update"
       - "patch"
-
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "subscriptions"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

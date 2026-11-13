@@ -27,4 +27,4 @@ spec:
   source:
     repoURL: https://github.com/cgruver/opinionated-dev-spaces.git
     targetRevision: main
-    path: cluster-gitops
+    path: cluster-gitops/cluster-app-of-apps
