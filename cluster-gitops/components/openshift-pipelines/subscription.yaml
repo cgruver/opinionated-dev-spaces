@@ -14,7 +14,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  channel: pipelines-1.22
+  channel: pipelines-1.24
   installPlanApproval: Manual
   name: openshift-pipelines-operator-rh
   source: redhat-operators
