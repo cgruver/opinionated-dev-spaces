@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi10-minimal
+FROM registry.access.redhat.com/ubi10-minimal:10.2
 ARG USER_HOME_DIR="/home/builder"
 ARG WORK_DIR="/home/builder"
 
