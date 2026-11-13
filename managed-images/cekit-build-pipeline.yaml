@@ -342,6 +342,8 @@ spec:
       value: /tekton-custom-certs/ca-bundle.crt
     - name: BUILDAH_LAYERS
       value: 'false'
+    - name: TMPDIR
+      value: /workspace/tmp
     script: |
       cd images/$(params.image-class)
       for image in $(ls *.yaml)
@@ -436,6 +438,8 @@ spec:
     env:
     - name: NODE_EXTRA_CA_CERTS
       value: /tekton-custom-certs/ca-bundle.crt
+    - name: TMPDIR
+      value: /workspace/tmp
     script: |
       image_def="images/$(params.image-path)"
       IMAGE_NAME=$(yq e ".name" ${image_def})

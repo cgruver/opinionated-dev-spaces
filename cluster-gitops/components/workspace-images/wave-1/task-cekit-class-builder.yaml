@@ -50,6 +50,8 @@ spec:
       value: /tekton-custom-certs/ca-bundle.crt
     - name: BUILDAH_LAYERS
       value: 'false'
+    - name: TMPDIR
+      value: /workspace/tmp
     script: |
       cd images/$(params.image-class)
       for image in $(ls *.yaml)
