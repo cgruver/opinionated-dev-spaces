@@ -86,7 +86,7 @@ spec:
             until [[ ${APPROVED} == "true" ]]
             do
               oc get installplan
-              STARTING_CSV=$(oc get subscription -o jsonpath='{.spec.startingCSV}')
+              STARTING_CSV=$(oc get subscription devspaces -o jsonpath='{.spec.startingCSV}')
               for INSTALL_PLAN in $(oc get installplan -o name)
               do
                 for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
