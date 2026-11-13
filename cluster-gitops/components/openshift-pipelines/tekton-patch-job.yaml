@@ -42,7 +42,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: tektonconfig-patch
-    namespace: {{ .Release.Namespace }}
+    namespace: openshift-pipelines
 ---
 apiVersion: batch/v1
 kind: Job

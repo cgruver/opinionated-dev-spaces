@@ -50,7 +50,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: pipelines-installplan-approver
-    namespace: {{ .Release.Namespace }}
+    namespace: openshift-pipelines
 roleRef:
   kind: Role
   name: pipelines-installplan-approver
