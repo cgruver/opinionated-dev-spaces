@@ -1,3 +1,71 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-image-builder
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+rules:
+- apiGroups:
+    - build.openshift.io
+  resources:
+    - buildconfigs
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - build.openshift.io
+  resources:
+    - builds
+    - buildconfigs/instantiate
+  verbs:
+    - create
+    - get
+    - list
+    - watch
+- apiGroups:
+    - build.openshift.io
+  resources:
+    - builds
+    - builds/log
+    - builds/details
+  verbs:
+    - get
+    - list
+    - watch
+    - update
+- apiGroups:
+    - image.openshift.io
+  resources:
+    - imagestreamtags
+    - imagestreams
+    - imagestreams/layers
+  verbs:
+    - get
+    - watch
+    - create
+    - update
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cekit-image-builder
+  namespace: workspace-images
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+subjects:
+  - kind: ServiceAccount
+    name: cekit-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cekit-image-builder
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,7 +80,7 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: cekit-builder
+      serviceAccountName: cekit-image-builder
       containers:
         - name: build-cekit-builder-image
           image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
