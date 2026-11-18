@@ -1,0 +1,86 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pulp-wait-for-api
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pulp-wait-for-api
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+rules:
+  - apiGroups:
+      - "apps"
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pulp-wait-for-api
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pulp-wait-for-api
+subjects:
+  - kind: ServiceAccount
+    name: pulp-wait-for-api
+    namespace: pulp
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulp-wait-for-api
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: pulp-wait-for-api
+      containers:
+      - name: pulp-wait-for-api
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            until [[ $(oc get deployment pulp-api -n pulp -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+            do
+              echo "Waiting for pulp-api deployment..."
+              sleep 5
+            done
+            echo "Pulp API is ready."
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+

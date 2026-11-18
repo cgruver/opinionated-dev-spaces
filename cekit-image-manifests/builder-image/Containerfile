@@ -16,9 +16,9 @@ RUN microdnf --disableplugin=subscription-manager install -y openssl git tar sha
     ##
     # Create the User's home directory
     mkdir -p ${HOME} ; \
-    chown -R 1000:1000 ${HOME} ; \
     mkdir -p ${HOME}/.config/containers ; \
     (echo '[storage]';echo 'driver = "overlay"';echo 'graphroot = "/tmp/graphroot"';echo '[storage.options.overlay]';echo 'mount_program = "/usr/bin/fuse-overlayfs"') > ${HOME}/.config/containers/storage.conf ; \
+    chown -R 1000:1000 ${HOME} ; \
     #
     # Add the user to /etc/passwd and /etc/group
     echo "user:x:1000:1000:devspaces user:${HOME}:/bin/bash" >> /etc/passwd ; \
