@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - base/devspaces.yaml
+  - base/pulp.yaml
   - base/openshift-pipelines.yaml
   - base/patch-gitops.yaml
   - base/workspace-images.yaml
