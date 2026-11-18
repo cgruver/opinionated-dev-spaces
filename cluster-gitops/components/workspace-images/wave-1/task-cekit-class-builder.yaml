@@ -89,7 +89,7 @@ spec:
       spec:
         pinnedImages:
       EOF
-      cat << EOF > workspace-images-worker.yaml
+      cat << EOF > pinned-images-worker.yaml
       apiVersion: machineconfiguration.openshift.io/v1
       kind: PinnedImageSet
       metadata:
@@ -104,9 +104,9 @@ spec:
         IMAGE_SHA=$(oc get imagestreamtag ${ist} -o jsonpath='{.image.metadata.name}')
         IMAGE_NAME=$(echo ${ist} | cut -d":" -f1)
         IMAGE_REF="$(params.registry)/$(params.registry-path)/${IMAGE_NAME}@${IMAGE_SHA}"
-        echo "  - name: ${IMAGE_REF}" >> workspace-images-worker.yaml
-        echo "  - name: ${IMAGE_REF}" >> workspace-images-master.yaml
+        echo "  - name: ${IMAGE_REF}" >> pinned-images-worker.yaml
+        echo "  - name: ${IMAGE_REF}" >> pinned-images-master.yaml
       done
-      oc apply -f workspace-images-master.yaml
-      oc apply -f workspace-images-worker.yaml
-      rm workspace-images-master.yaml workspace-images-worker.yaml
+      oc apply -f pinned-images-master.yaml
+      oc apply -f pinned-images-worker.yaml
+
