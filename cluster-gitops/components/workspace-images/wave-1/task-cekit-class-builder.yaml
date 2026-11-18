@@ -79,7 +79,7 @@ spec:
     workingDir: "/workspace/source"
     script: |
       cd $(params.image-class-path)
-      cat << EOF > pinned-images.yaml
+      cat << EOF > pinned-images-master.yaml
       apiVersion: machineconfiguration.openshift.io/v1
       kind: PinnedImageSet
       metadata:
