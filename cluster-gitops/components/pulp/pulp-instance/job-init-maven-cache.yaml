@@ -85,10 +85,18 @@ spec:
             timeout = 0
             verbose = 1
             EOF
-
-            pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote create --name maven-central --url https://repo1.maven.org/maven2/
-            pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven repository create --name maven-central --remote maven-central
-            pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven distribution create --name maven-central --remote maven-central --repository maven-central --base-path maven-central
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote show --name maven-central-test > /dev/null 2>&1
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote create --name maven-central --url https://repo1.maven.org/maven2/
+            fi
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven repository show --name maven-central
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven repository create --name maven-central --remote maven-central
+            fi
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven distribution show --name maven-central
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven distribution create --name maven-central --remote maven-central --repository maven-central --base-path maven-central
+            fi
         resources:
           requests:
             cpu: 50m

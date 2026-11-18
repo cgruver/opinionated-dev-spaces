@@ -69,19 +69,28 @@ spec:
           - /bin/bash
           - -c
           - |
-            echo "Waiting for Pulp Operator InstallPlan to exist..."            
-            install_plan=""
-            until [[ ${install_plan} != "" ]]
-            do
-              oc get installplan
-              install_plan=$(oc get installplan | grep "pulp-operator" | grep false | cut -d" " -f1)
-              if [[ ${install_plan} == "" ]]
-              then
-                sleep 15
-              fi
-            done
-            oc patch installplan ${install_plan} --type merge --patch '{"spec":{"approved":true }}'
-            echo "Pulp Operator InstallPlan Approved"
+            APPROVED="false"
+              until [[ ${APPROVED} == "true" ]]
+              do
+                oc get installplan
+                STARTING_CSV=$(oc get subscription pulp-operator -o jsonpath='{.spec.startingCSV}')
+                for INSTALL_PLAN in $(oc get installplan -o name)
+                do
+                  for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
+                  do
+                    if [[ ${CSV} == ${STARTING_CSV} ]]
+                    then
+                      oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                      echo "Operator InstallPlan Approved"
+                      APPROVED="true"
+                    fi
+                  done
+                  if [[ ${APPROVED} == "false" ]]
+                  then
+                    sleep 5
+                  fi
+                done
+              done
         resources:
           requests:
             cpu: 50m
