@@ -1,0 +1,15 @@
+schema_version: 1
+name: ops-tools
+version: v1.0
+description: "Installs Sys Engineering Tools"
+args:
+- name: TEKTON_CLI_VERSION
+  value: 0.43.1
+- name: ARGO_CD_VERSION
+  value: v3.1.12
+packages:
+  install:
+  - helm
+  - kustomize
+execute:
+- script: install.sh

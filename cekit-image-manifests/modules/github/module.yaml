@@ -1,0 +1,6 @@
+schema_version: 1
+name: github
+version: latest
+description: "Installs the GitHub CLI"
+execute:
+- script: install.sh

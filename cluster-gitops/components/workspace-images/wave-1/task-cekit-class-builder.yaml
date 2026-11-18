@@ -14,7 +14,7 @@ spec:
   - name: registry-path
     type: string
     description: Path to the image within the registry
-  - name: image-class
+  - name: image-class-name
     type: string
     description: The group of images to be built.  base, utility, app-product
   - name: repository
@@ -24,6 +24,9 @@ spec:
     type: string
     description: The repository branch to clone.
     default: "main"
+  - name: image-class-path
+    type: string
+    description: The relative path to the image manifests in the git repo
   stepTemplate:
     securityContext:
       capabilities:
@@ -53,7 +56,7 @@ spec:
     - name: TMPDIR
       value: /workspace/tmp
     script: |
-      cd images/$(params.image-class)
+      cd $(params.image-class-path)
       for image in $(ls *.yaml)
       do
         if [[ $(yq 'tag == "!!seq"' ${image}) == "true" ]]
@@ -75,12 +78,12 @@ spec:
     image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
     workingDir: "/workspace/source"
     script: |
-      cd images/$(params.image-class)
+      cd $(params.image-class-path)
       cat << EOF > pinned-images.yaml
       apiVersion: machineconfiguration.openshift.io/v1
       kind: PinnedImageSet
       metadata:
-        name: cekit-builder-images-$(params.image-class)
+        name: cekit-builder-images-$(params.image-class-name)
         labels:
           machineconfiguration.openshift.io/role: master
       spec:
@@ -90,7 +93,7 @@ spec:
       apiVersion: machineconfiguration.openshift.io/v1
       kind: PinnedImageSet
       metadata:
-        name: cekit-builder-images-worker$(params.image-class)
+        name: cekit-builder-images-worker$(params.image-class-name)
         labels:
           machineconfiguration.openshift.io/role: worker
       spec:

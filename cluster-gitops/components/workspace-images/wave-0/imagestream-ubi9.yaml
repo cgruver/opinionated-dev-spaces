@@ -17,3 +17,11 @@ spec:
     name: "9.8"
     referencePolicy:
       type: Source
+  - from:
+      kind: DockerImage
+      name: registry.access.redhat.com/ubi9:9.9
+    importPolicy:
+      importMode: Legacy
+    name: "9.9"
+    referencePolicy:
+      type: Source

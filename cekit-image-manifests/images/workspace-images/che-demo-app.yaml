@@ -1,0 +1,17 @@
+name: che-demo-app
+from: image-registry.openshift-image-registry.svc:5000/workspace-images/workspace-base:ubi10
+version: latest
+packages:
+  manager: dnf
+  manager_flags: "--disableplugin=subscription-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=0"
+modules:
+  repositories:
+  - path: "../../modules"
+    name: modules
+  install:
+  - name: node20
+  - name: angular
+  - name: java21
+  - name: quarkus
+  - name: opencode
+  - name: kilo-cli

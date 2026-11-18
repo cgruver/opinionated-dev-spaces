@@ -10,7 +10,7 @@ spec:
     git:
       uri: https://github.com/cgruver/opinionated-dev-spaces.git
       ref: main
-    contextDir: "managed-images/cekit-builder-image"
+    contextDir: "cekit-image-manifests/builder-image"
   strategy:
     dockerStrategy:
       dockerfilePath: "Containerfile"

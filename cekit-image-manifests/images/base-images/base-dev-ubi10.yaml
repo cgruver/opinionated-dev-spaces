@@ -1,0 +1,32 @@
+- name: openshift-cli
+  from: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+  version: 0.0.0
+  description: OpenShift CLI image from internal image registry
+
+- name: workspace-base
+  from: image-registry.openshift-image-registry.svc:5000/workspace-images/ubi10:10.3
+  version: ubi10
+  packages:
+    manager: dnf
+    manager_flags: "--disableplugin=subscription-manager --setopt=tsflags=nodocs --setopt=install_weak_deps=0"
+    install:
+    - https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm
+    - wget
+  modules:
+    repositories:
+    - path: "../../modules"
+      name: modules
+    install:
+    - name: dev-base
+    - name: yq
+  artifacts:
+    - name: oc
+      image: openshift-cli
+      path: /usr/bin/oc
+      target: oc
+      dest: /usr/bin/
+    - name: kubectl
+      image: openshift-cli
+      path: /usr/bin/kubectl
+      target: kubectl
+      dest: /usr/bin/

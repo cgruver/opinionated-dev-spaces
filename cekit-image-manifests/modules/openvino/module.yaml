@@ -1,0 +1,11 @@
+schema_version: 1
+name: openvino
+version: v1.0
+description: "Installs Tools OpenVino model conversion"
+envs:
+- name: LD_LIBRARY_PATH
+  value: /usr/local/ovms/lib
+- name: PATH
+  value: ${PATH}:/usr/local/ovms/bin
+execute:
+- script: install.sh

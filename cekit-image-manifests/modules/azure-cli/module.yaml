@@ -1,0 +1,6 @@
+schema_version: 1
+name: azure-cli
+version: v1.0
+description: "Installs the Azure CLI"
+execute:
+- script: install.sh
