@@ -86,16 +86,16 @@ spec:
             - |
               set -e
               set -x
-              CSV=$(oc get csv -n openshift-devspaces -o name | grep devspaces)
-              che_code=$(oc get ${CSV} -n openshift-devspaces -o jsonpath='{.spec.relatedImages[?(@.name=="editor_definition_che_code_latest_che_code_injector")].image}')
-              traefik=$(oc get ${CSV} -n openshift-devspaces -o jsonpath='{.spec.relatedImages[?(@.name=="single_host_gateway")].image}')
-              CSV=$(oc get csv -n openshift-devspaces -o name | grep devworkspace)
-              project_clone=$(oc get ${CSV} -n openshift-devspaces -o jsonpath='{.spec.relatedImages[?(@.name=="project_clone")].image}')
+              CSV=$(oc get csv -o name | grep devspaces)
+              che_code=$(oc get ${CSV} -o jsonpath='{.spec.relatedImages[?(@.name=="editor_definition_che_code_latest_che_code_injector")].image}')
+              traefik=$(oc get ${CSV} -o jsonpath='{.spec.relatedImages[?(@.name=="single_host_gateway")].image}')
+              CSV=$(oc get csv -o name | grep devworkspace)
+              project_clone=$(oc get ${CSV} -o jsonpath='{.spec.relatedImages[?(@.name=="project_clone")].image}')
               cat << EOF | oc apply -f -
               apiVersion: machineconfiguration.openshift.io/v1
               kind: PinnedImageSet
               metadata:
-                name: devspaces-images
+                name: devspaces-images-worker
                 labels:
                   machineconfiguration.openshift.io/role: worker
               spec:
@@ -108,7 +108,7 @@ spec:
               apiVersion: machineconfiguration.openshift.io/v1
               kind: PinnedImageSet
               metadata:
-                name: devspaces-images
+                name: devspaces-images-master
                 labels:
                   machineconfiguration.openshift.io/role: master
               spec:

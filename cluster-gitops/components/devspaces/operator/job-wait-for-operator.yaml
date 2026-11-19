@@ -73,19 +73,17 @@ spec:
             - /bin/bash
             - -c
             - |
-              NS="openshift-devspaces"
-
               echo "Waiting for DevSpaces CSV to succeed in ${NS}..."
-              until CSV=$(oc get csv -n ${NS} --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep devspacesoperator | head -1) && \
+              until CSV=$(oc get csv --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep devspacesoperator | head -1) && \
                     [ -n "${CSV}" ] && \
-                    [ "$(oc get csv ${CSV} -n ${NS} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
+                    [ "$(oc get csv ${CSV} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
                 echo "  ...CSV not ready yet"
                 sleep 10
               done
               echo "CSV ${CSV} succeeded."
 
               echo "Waiting for devspaces-operator-service endpoint..."
-              until oc get endpoints devspaces-operator-service -n ${NS} \
+              until oc get endpoints devspaces-operator-service \
                 -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null | grep -q .; do
                 echo "  ...endpoint not ready yet"
                 sleep 5
