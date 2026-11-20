@@ -28,6 +28,14 @@ rules:
       - "watch"
       - "update"
       - "patch"
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "subscriptions"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -70,27 +78,28 @@ spec:
           - -c
           - |
             APPROVED="false"
-              until [[ ${APPROVED} == "true" ]]
+            until [[ ${APPROVED} == "true" ]]
+            do
+              oc get installplan
+              STARTING_CSV=$(oc get subscription pulp-operator -o jsonpath='{.spec.startingCSV}')
+              for INSTALL_PLAN in $(oc get installplan -o name)
               do
-                oc get installplan
-                STARTING_CSV=$(oc get subscription pulp-operator -o jsonpath='{.spec.startingCSV}')
-                for INSTALL_PLAN in $(oc get installplan -o name)
+                for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
                 do
-                  for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
-                  do
-                    if [[ ${CSV} == ${STARTING_CSV} ]]
-                    then
-                      oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
-                      echo "Operator InstallPlan Approved"
-                      APPROVED="true"
-                    fi
-                  done
-                  if [[ ${APPROVED} == "false" ]]
+                  if [[ ${CSV} == ${STARTING_CSV} ]]
                   then
-                    sleep 5
+                    oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                    echo "Operator InstallPlan Approved"
+                    APPROVED="true"
                   fi
                 done
+                if [[ ${APPROVED} == "false" ]]
+                then
+                  sleep 5
+                fi
               done
+            done
+            
         resources:
           requests:
             cpu: 50m

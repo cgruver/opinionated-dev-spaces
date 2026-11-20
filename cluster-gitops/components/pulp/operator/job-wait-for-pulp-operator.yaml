@@ -34,6 +34,16 @@ rules:
       - get
       - list
       - watch
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "installplans"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "update"
+      - "patch"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -76,17 +86,44 @@ spec:
             - /bin/bash
             - -c
             - |
-              NS="pulp"
-
-              echo "Waiting for Pulp CSV to succeed in ${NS}..."
-              until CSV=$(oc get csv -n ${NS} --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep pulp-operator | head -1) && \
-                    [ -n "${CSV}" ] && \
-                    [ "$(oc get csv ${CSV} -n ${NS} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
+              until [[ ! -z "${STARTING_CSV}" ]]
+              do
+                STARTING_CSV=$(oc get subscription pulp-operator -o jsonpath='{.spec.startingCSV}')
+                if [[ -z "${STARTING_CSV} ]]
+                then
+                  echo "Waiting for subscription..."
+                  sleep 5
+                fi
+              done
+              echo "Waiting for InstallPlan approval..."
+              APPROVED="false"
+              until [[ ${APPROVED} == "true" ]]
+              do
+                oc get installplan
+                for INSTALL_PLAN in $(oc get installplan -o name)
+                do
+                  for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
+                  do
+                    if [[ ${CSV} == ${STARTING_CSV} ]]
+                    then
+                      oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                      echo "Operator InstallPlan Approved"
+                      APPROVED="true"
+                    fi
+                  done
+                  if [[ ${APPROVED} == "false" ]]
+                  then
+                    sleep 5
+                  fi
+                done
+              done
+              echo "Waiting for Pulp CSV to succeed..."
+              until [[ $(oc get subscription pulp-operator -o jsonpath='{.status.installedCSV}') == ${STARTING_CSV} ]]
+              do
                 echo "  ...CSV not ready yet"
-                sleep 10
+                sleep 5
               done
               echo "CSV ${CSV} succeeded."
-
               until [[ $(oc get deployment pulp-operator-controller-manager -n pulp -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
               do
                 echo "Waiting for pulp-operator-operator deployment..."

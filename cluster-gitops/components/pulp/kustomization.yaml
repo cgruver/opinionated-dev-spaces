@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
 - operator/pulp-operator.yaml
-- operator/job-pulp-installplan-approver.yaml
 - operator/job-wait-for-pulp-operator.yaml
 - pulp-instance/pulp.yaml
 - pulp-instance/job-wait-for-pulp-instance.yaml
