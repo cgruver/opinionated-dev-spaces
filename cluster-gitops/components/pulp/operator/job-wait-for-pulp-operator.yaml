@@ -20,13 +20,6 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 rules:
   - apiGroups:
-      - "operators.coreos.com"
-    resources:
-      - clusterserviceversions
-    verbs:
-      - get
-      - list
-  - apiGroups:
       - "apps"
     resources:
       - deployments
@@ -132,7 +125,7 @@ spec:
                 sleep 5
               done
               echo "CSV ${CSV} succeeded."
-              until [[ $(oc get deployment pulp-operator-controller-manager -n pulp -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              until [[ $(oc get deployment pulp-operator-controller-manager -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
               do
                 echo "Waiting for pulp-operator-operator deployment..."
                 sleep 5

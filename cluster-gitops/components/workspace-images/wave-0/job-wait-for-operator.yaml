@@ -19,9 +19,22 @@ metadata:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 rules:
-  - apiGroups: ["operators.coreos.com"]
-    resources: ["clusterserviceversions"]
-    verbs: ["get", "list"]
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "subscriptions"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "apps"
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -64,14 +77,29 @@ spec:
             - /bin/bash
             - -c
             - |
-              NS="openshift-pipelines"
-
-              echo "Waiting for Pipelines CSV to succeed in ${NS}..."
-              until CSV=$(oc get csv -n ${NS} --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep openshift-pipelines-operator-rh | head -1) && \
-                    [ -n "${CSV}" ] && \
-                    [ "$(oc get csv ${CSV} -n ${NS} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
+              until [[ ! -z "${STARTING_CSV}" ]]
+              do
+                STARTING_CSV=$(oc get subscription openshift-pipelines-operator -o jsonpath='{.spec.startingCSV}')
+                if [[ -z "${STARTING_CSV}" ]]
+                then
+                  echo "Waiting for subscription..."
+                  sleep 5
+                fi
+              done
+              echo "Waiting for CSV to succeed..."
+              until [[ $(oc get subscription openshift-pipelines-operator -o jsonpath='{.status.installedCSV}') == ${STARTING_CSV} ]]
+              do
                 echo "  ...CSV not ready yet"
-                sleep 10
+                sleep 5
               done
               echo "CSV ${CSV} succeeded."
+              until [[ $(oc get deployment openshift-pipelines-operator -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              do
+                echo "Waiting for openshift-pipelines-operator deployment..."
+                sleep 5
+              done
+              echo "Operator is ready."
+
+
+
 

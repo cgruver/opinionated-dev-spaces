@@ -1,10 +1,3 @@
-# The DevSpaces CRD uses a conversion webhook served by the operator pod.
-# OLM can fail to install if it tries to validate CRs against the new CRD
-# before the operator pod is ready to serve the webhook, causing a terminal
-# InstallPlan failure. This Job sits between the Subscription (wave -2) and
-# the CheCluster (wave 0), blocking ArgoCD from advancing until the CSV is
-# installed and the webhook endpoint is live.
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -25,12 +18,39 @@ metadata:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 rules:
-  - apiGroups: ["operators.coreos.com"]
-    resources: ["clusterserviceversions"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["endpoints"]
-    verbs: ["get"]
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - clusterserviceversions
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - "apps"
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "installplans"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "update"
+      - "patch"
+  - apiGroups:
+      - "operators.coreos.com"
+    resources:
+      - "subscriptions"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -73,19 +93,59 @@ spec:
             - /bin/bash
             - -c
             - |
-              echo "Waiting for DevSpaces CSV to succeed in ${NS}..."
-              until CSV=$(oc get csv --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep devspacesoperator | head -1) && \
-                    [ -n "${CSV}" ] && \
-                    [ "$(oc get csv ${CSV} -o jsonpath='{.status.phase}' 2>/dev/null)" = "Succeeded" ]; do
-                echo "  ...CSV not ready yet"
-                sleep 10
+              until [[ ! -z "${STARTING_CSV}" ]]
+              do
+                STARTING_CSV=$(oc get subscription devspaces -o jsonpath='{.spec.startingCSV}')
+                if [[ -z "${STARTING_CSV}" ]]
+                then
+                  echo "Waiting for subscription..."
+                  sleep 5
+                fi
               done
-              echo "CSV ${CSV} succeeded."
-
-              echo "Waiting for devspaces-operator-service endpoint..."
-              until oc get endpoints devspaces-operator-service \
-                -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null | grep -q .; do
-                echo "  ...endpoint not ready yet"
+              echo "Waiting for InstallPlan approval..."
+              APPROVED="false"
+              until [[ ${APPROVED} == "true" ]]
+              do
+                oc get installplan
+                for INSTALL_PLAN in $(oc get installplan -o name)
+                do
+                  for CSV in $(oc get ${INSTALL_PLAN} -o jsonpath='{.spec.clusterServiceVersionNames[*]}')
+                  do
+                    if [[ ${CSV} == ${STARTING_CSV} ]]
+                    then
+                      oc patch ${INSTALL_PLAN} --type merge --patch '{"spec":{"approved":true }}'
+                      echo "Operator InstallPlan Approved"
+                      APPROVED="true"
+                    fi
+                  done
+                  if [[ ${APPROVED} == "false" ]]
+                  then
+                    sleep 5
+                  fi
+                done
+              done
+              until [[ $(oc get subscription devspaces -o jsonpath='{.status.installedCSV}') == ${STARTING_CSV} ]]
+              do
+                echo "  ...CSV not ready yet"
                 sleep 5
               done
-              echo "Operator webhook endpoint is ready."
+              echo "CSV ${CSV} succeeded."
+              until [[ $(oc get deployment devspaces-operator -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              do
+                echo "Waiting for devspaces-operator deployment..."
+                sleep 5
+              done
+              echo "Deployment: devspaces-operator is ready."
+              until [[ $(oc get deployment devworkspace-controller-manager -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              do
+                echo "Waiting for devworkspace-controller-manager deployment..."
+                sleep 5
+              done
+              echo "Deployment: devworkspace-controller-manager is ready."
+              until [[ $(oc get deployment devworkspace-webhook-server  -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              do
+                echo "Waiting for devworkspace-webhook-server deployment..."
+                sleep 5
+              done
+              echo "Deployment: devworkspace-webhook-server is ready."
+              echo "Operator is ready."
