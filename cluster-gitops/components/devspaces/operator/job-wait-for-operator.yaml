@@ -81,7 +81,7 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 spec:
   backoffLimit: 5
-  activeDeadlineSeconds: 600
+  activeDeadlineSeconds: 120
   template:
     spec:
       restartPolicy: Never
@@ -142,7 +142,7 @@ spec:
                 sleep 5
               done
               echo "Deployment: devworkspace-controller-manager is ready."
-              until [[ $(oc get deployment devworkspace-webhook-server  -o jsonpath='{.status.readyReplicas}') -eq 1 ]]
+              until [[ $(oc get deployment devworkspace-webhook-server  -o jsonpath='{.status.readyReplicas}') -eq 2 ]]
               do
                 echo "Waiting for devworkspace-webhook-server deployment..."
                 sleep 5
