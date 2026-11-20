@@ -11,12 +11,6 @@
 		{
 			"name": "kamarotos",
 			"path": "/projects/kamarotos"
-		},
-		{
-			"path": "../importvsx"
-		},
-		{
-			"path": "../lab-config"
 		}
 	],
 	"extensions": {
@@ -38,7 +32,6 @@
 		"workbench.preferredLightColorTheme": "Winter is Coming (Light)",
 		"editor.wordWrap": "on",
 		"files.autoSave": "off",
-		"zoo-code.autoImportSettingsPath": "/globalconfig/zoo-code-settings.json",
 		"chat.disableAIFeatures": true,
 		"kilo-code.new.autocomplete.enableAutoTrigger": false,
 		"kilo-code.new.autocomplete.enableChatAutocomplete": false,

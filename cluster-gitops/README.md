@@ -39,7 +39,3 @@ subjects:
   name: openshift-gitops-argocd-application-controller
   namespace: openshift-gitops
 ```
-
-```bash
-oc patch console.operator cluster --type=json -p '[{"op": "add", "path": "/spec/plugins", "value": ["pipelines-console-plugin"]}]'
-```

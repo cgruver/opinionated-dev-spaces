@@ -118,11 +118,11 @@ spec:
                       APPROVED="true"
                     fi
                   done
-                  if [[ ${APPROVED} == "false" ]]
-                  then
-                    sleep 5
-                  fi
                 done
+                if [[ ${APPROVED} == "false" ]]
+                then
+                  sleep 5
+                fi
               done
               until [[ $(oc get subscription devspaces -o jsonpath='{.status.installedCSV}') == ${STARTING_CSV} ]]
               do

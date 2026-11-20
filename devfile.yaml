@@ -19,7 +19,7 @@ dependentProjects:
 components:
 - name: dev-tools
   container:
-    image: image-registry.openshift-image-registry.svc:5000/cekit-images/ops-tools:latest
+    image: image-registry.openshift-image-registry.svc:5000/workspace-images/ops-tools:latest
     memoryLimit: 6Gi
     memoryRequest: 1Gi
     cpuLimit: "4"
