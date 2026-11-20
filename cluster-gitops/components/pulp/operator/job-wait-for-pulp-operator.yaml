@@ -89,7 +89,7 @@ spec:
               until [[ ! -z "${STARTING_CSV}" ]]
               do
                 STARTING_CSV=$(oc get subscription pulp-operator -o jsonpath='{.spec.startingCSV}')
-                if [[ -z "${STARTING_CSV} ]]
+                if [[ -z "${STARTING_CSV}" ]]
                 then
                   echo "Waiting for subscription..."
                   sleep 5
