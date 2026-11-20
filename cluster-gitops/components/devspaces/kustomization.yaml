@@ -5,6 +5,5 @@ resources:
 - operator/dev-spaces-operator.yaml
 - operator/job-wait-for-operator.yaml
 - checluster/checluster.yaml
-- checluster/clusterrole-pinned-image-sets.yaml
 - checluster/guardrails.yaml
 - checluster/job-pin-devspaces-images.yaml

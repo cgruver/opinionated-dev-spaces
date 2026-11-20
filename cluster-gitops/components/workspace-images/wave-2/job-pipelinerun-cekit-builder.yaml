@@ -22,22 +22,29 @@ spec:
             - |
               count=0
               limit=60
-              while ! oc get is cekit-builder
+              until [[ ! -z $(oc get is cekit-builder -o jsonpath='{.status.tags[0]}') ]]
               do
                 echo "Waiting for cekit-builder image build to complete"
-                sleep 10
-                count=$(( ${count} + 1 ))
+                sleep 5
+                
                 if [[ ${count} -eq ${limit} ]]
                 then
                   echo "Failed waiting for image build to complete"
                   exit 1
+                else
+                  count=$(( ${count} + 1 ))
                 fi
               done
+              count=0
+              limit=10
+              SUCCESS="false"
+              until [[ ${SUCCESS} == "true" ]]
+              do
               cat << EOF | oc create -f -
               apiVersion: tekton.dev/v1
               kind: PipelineRun
               metadata:
-                generateName: build-all-cekit-
+                name: build-all-cekit-${count}
               spec:
                 pipelineRef:
                   name: cekit-build-all
@@ -55,6 +62,23 @@ spec:
                     hostUsers: false
                   serviceAccountName: cekit-builder
               EOF
+                until [[ ! -z $(oc get pipelinerun build-all-cekit-${count} -o jsonpath='{.status.completionTime}') ]]
+                do
+                  echo waiting for pipeline run...
+                  sleep 10
+                done
+                if [[ $(oc get pipelinerun build-all-cekit-${count} -o jsonpath='{.status.conditions[0].reason}') == "Succeeded" ]]
+                then
+                  SUCCESS="true"
+                fi
+                if [[ ${count} -eq ${limit} ]]
+                then
+                  echo "Failed waiting for pipeline run to complete"
+                  exit 1
+                else
+                  count=$(( ${count} + 1 ))
+                fi
+              done
           resources:
             requests:
               cpu: 100m
