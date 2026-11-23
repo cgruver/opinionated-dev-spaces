@@ -15,11 +15,11 @@ objects:
     name: devspaces-user-resource-quota
   spec:
     hard:
-      limits.cpu: '6'
-      limits.memory: 32Gi
+      limits.cpu: '16'
+      limits.memory: 64Gi
       requests.cpu: '1'
       requests.memory: 8Gi
-      requests.storage: 200Gi
+      requests.storage: 500Gi
 - apiVersion: v1
   kind: LimitRange
   metadata:
