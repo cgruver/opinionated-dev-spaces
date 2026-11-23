@@ -1,5 +1,7 @@
 # Considerations for running OpenShift Dev Spaces at Scale
 
+[![Contribute](https://workspaces.openshift.com/devspaces-contribute.svg)](https://devspaces.apps.clg-lab.clg.lab/#https://github.com/cgruver/opinionated-dev-spaces.git) __Open this project with OpenShift Dev Spaces__ - Note: Specific to my lab, but included as an example
+
 __RFEs to follow__
 
 * Backup/Restore of workspace across clusters - 

@@ -18,9 +18,9 @@ objects:
       controller.devfile.io/mount-to-devworkspace: "true"
   spec:
     accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
     resources:
       requests:
         storage: 5Gi
-    storageClassName: qnap-iscsi
+    storageClassName: <storage-class-that-supports-rwx>
     volumeMode: Filesystem
