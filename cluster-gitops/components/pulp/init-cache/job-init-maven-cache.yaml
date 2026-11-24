@@ -85,7 +85,7 @@ spec:
             timeout = 0
             verbose = 1
             EOF
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote show --name maven-central-test > /dev/null 2>&1
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote show --name maven-central > /dev/null 2>&1
             then
               pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote create --name maven-central --url https://repo1.maven.org/maven2/
             fi

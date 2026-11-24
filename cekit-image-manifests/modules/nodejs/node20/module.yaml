@@ -9,13 +9,5 @@ args:
 envs:
 - name: PATH
   value: ${PATH}:/usr/local/node/bin
-# Uncomment the artifacts section below to embed a global npmrc into the container image.
-# Note: Also uncomment the relevant lines in the install.sh script
-#
-# artifacts:
-# - name: npmrc
-#   path: npmrc
-#   target: npmrc
-#   dest: /
 execute:
 - script: install.sh

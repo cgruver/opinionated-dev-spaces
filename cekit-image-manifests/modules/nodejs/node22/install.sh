@@ -1,1 +1,1 @@
-../../shared-artifacts/nodejs-install.sh
+../common/nodejs-install.sh

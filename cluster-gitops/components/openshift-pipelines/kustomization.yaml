@@ -2,6 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- job-install-plan-approver.yaml
+- job-wait-for-operator.yaml
 - subscription.yaml
 - job-tekton-patch.yaml

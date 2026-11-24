@@ -9,3 +9,5 @@ packages:
   install:
   - java-21-openjdk-devel
   - maven.noarch
+execute:
+- script: install.sh

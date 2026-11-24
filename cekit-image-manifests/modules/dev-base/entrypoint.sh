@@ -38,7 +38,10 @@ then
   fi
 fi
 
-. /workspace-init.sh
+if [ -f /workspace-init.sh ]
+then
+  . /workspace-init.sh
+fi
 
 # Create Java Keystore
 if [ command -v keytool > /dev/null 2>&1 ] & [ ! -f ${HOME}/.keystore ]

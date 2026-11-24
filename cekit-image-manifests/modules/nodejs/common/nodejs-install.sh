@@ -8,6 +8,8 @@ rm -rf "${TEMP_DIR}"
 #
 # Example for enabling global npm settings
 #
-# mkdir -p /usr/local/node/etc
-# mv /npmrc /usr/local/node/etc/npmrc
-# chmod 444 /usr/local/node/etc/npmrc
+mkdir -p /usr/local/node/etc
+cat << EOF > /usr/local/node/etc/npmrc
+registry = http://pulp-content-svc.pulp.svc.cluster.local:24816/pulp/content/npmjs-org/
+EOF
+chmod 444 /usr/local/node/etc/npmrc

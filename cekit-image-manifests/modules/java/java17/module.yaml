@@ -9,3 +9,5 @@ packages:
   install:
   - java-17-openjdk-devel
   - maven.noarch
+execute:
+- script: install.sh

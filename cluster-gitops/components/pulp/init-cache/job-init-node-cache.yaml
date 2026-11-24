@@ -1,0 +1,110 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pulp-init-node-cache
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pulp-init-node-cache
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pulp-init-node-cache
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pulp-init-node-cache
+subjects:
+  - kind: ServiceAccount
+    name: pulp-init-node-cache
+    namespace: pulp
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulp-init-node-cache
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: pulp-init-node-cache
+      containers:
+      - name: pulp-init-node-cache
+        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        command:
+          - /bin/bash
+          - -c
+          - |
+            mkdir -p /tmp/home
+            export HOME=/tmp/home
+            python3 -m venv ${HOME}/.venv
+            . ${HOME}/.venv/bin/activate
+            pip install pulp-cli
+            pip install pulp-cli-npm
+
+            mkdir -p ${HOME}/.config/pulp
+            cat << EOF > ${HOME}/.config/pulp/cli.toml
+            [cli]
+            base_url = "http://pulp-api-svc.pulp.svc.cluster.local:24817"
+            api_root = "/pulp/"
+            domain = "default"
+            headers = []
+            verify_ssl = false
+            format = "json"
+            dry_run = false
+            timeout = 0
+            verbose = 1
+            EOF
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm remote show --name npmjs-org > /dev/null 2>&1
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm remote create --name npmjs-org --url https://repo1.node.org/node2/
+            fi
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm repository show --name npmjs-org
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm repository create --name npmjs-org --remote npmjs-org
+            fi
+            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm distribution show --name npmjs-org
+            then
+              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
+            fi
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
