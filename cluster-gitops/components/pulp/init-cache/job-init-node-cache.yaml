@@ -62,7 +62,13 @@ spec:
       serviceAccountName: pulp-init-node-cache
       containers:
       - name: pulp-init-node-cache
-        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        image: image-registry.openshift-image-registry.svc:5000/openshift/python:latest
+        env:
+        - name: PULP_ADMIN
+          valueFrom:
+            secretKeyRef:
+              name: pulp-admin-password 
+              key: password     
         command:
           - /bin/bash
           - -c
@@ -87,17 +93,18 @@ spec:
             timeout = 0
             verbose = 1
             EOF
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm remote show --name npmjs-org > /dev/null 2>&1
+            
+            if ! pulp --username admin --password ${PULP_ADMIN} npm remote show --name npmjs-org > /dev/null 2>&1
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm remote create --name npmjs-org --url https://repo1.node.org/node2/
+              pulp --username admin --password ${PULP_ADMIN} npm remote create --name npmjs-org --url https://repo1.node.org/node2/
             fi
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm repository show --name npmjs-org
+            if ! pulp --username admin --password ${PULP_ADMIN} npm repository show --name npmjs-org
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm repository create --name npmjs-org --remote npmjs-org
+              pulp --username admin --password ${PULP_ADMIN} npm repository create --name npmjs-org --remote npmjs-org
             fi
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm distribution show --name npmjs-org
+            if ! pulp --username admin --password ${PULP_ADMIN} npm distribution show --name npmjs-org
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
+              pulp --username admin --password ${PULP_ADMIN} npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
             fi
         resources:
           requests:
