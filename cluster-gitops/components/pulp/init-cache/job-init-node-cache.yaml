@@ -104,7 +104,9 @@ spec:
             fi
             if ! pulp --username admin --password ${PULP_ADMIN} npm distribution show --name npmjs-org
             then
-              pulp --username admin --password ${PULP_ADMIN} npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
+              REMOTE_HREF=$(pulp --username admin --password ${PULP_ADMIN} npm remote show --name npmjs-org | jq -r '.pulp_href')
+              curl -X POST "$BASE_ADDR/pulp/api/v3/distributions/npm/npm/" -u admin:password -H "Content-Type: application/json" -d "{\"name\": \"npmjs-org\", \"base_path\": \"npmjs-org\", \"remote\": \"$REMOTE_HREF\",\"repository\": \"npmjs-org\"}"
+              # pulp --username admin --password ${PULP_ADMIN} npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
             fi
         resources:
           requests:
