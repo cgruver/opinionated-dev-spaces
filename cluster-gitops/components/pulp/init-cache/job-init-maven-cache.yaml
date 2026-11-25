@@ -62,7 +62,13 @@ spec:
       serviceAccountName: pulp-init-maven-cache
       containers:
       - name: pulp-init-maven-cache
-        image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+        image: image-registry.openshift-image-registry.svc:5000/openshift/python:latest
+        env:
+        - name: PULP_ADMIN
+          valueFrom:
+            secretKeyRef:
+              name: pulp-admin-password 
+              key: password
         command:
           - /bin/bash
           - -c
@@ -87,17 +93,17 @@ spec:
             timeout = 0
             verbose = 1
             EOF
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote show --name maven-central > /dev/null 2>&1
+            if ! pulp --username admin --password ${PULP_ADMIN} maven remote show --name maven-central > /dev/null 2>&1
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven remote create --name maven-central --url https://repo1.maven.org/maven2/
+              pulp --username admin --password ${PULP_ADMIN} maven remote create --name maven-central --url https://repo1.maven.org/maven2/
             fi
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven repository show --name maven-central
+            if ! pulp --username admin --password ${PULP_ADMIN} maven repository show --name maven-central
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven repository create --name maven-central --remote maven-central
+              pulp --username admin --password ${PULP_ADMIN} maven repository create --name maven-central --remote maven-central
             fi
-            if ! pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven distribution show --name maven-central
+            if ! pulp --username admin --password ${PULP_ADMIN} maven distribution show --name maven-central
             then
-              pulp --username admin --password $(oc get secret pulp-admin-password -n pulp -o jsonpath="{.data.password}" | base64 --decode) maven distribution create --name maven-central --remote maven-central --repository maven-central --base-path maven-central
+              pulp --username admin --password ${PULP_ADMIN} maven distribution create --name maven-central --remote maven-central --repository maven-central --base-path maven-central
             fi
         resources:
           requests:

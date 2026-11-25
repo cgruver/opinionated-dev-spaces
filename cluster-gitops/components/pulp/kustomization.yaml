@@ -7,4 +7,4 @@ resources:
 - pulp-instance/pulp.yaml
 - pulp-instance/job-wait-for-pulp-instance.yaml
 - init-cache/job-init-maven-cache.yaml
-# - init-cache/job-init-node-cache.yaml
+- init-cache/job-init-node-cache.yaml

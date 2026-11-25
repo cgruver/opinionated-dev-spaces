@@ -1,0 +1,31 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: pulp-cli-image
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: pulp-cli-image
+  namespace: pulp
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM registry.access.redhat.com/ubi10-minimal:10.3
+
+      ENV HOME=/tmp/home
+      RUN microdnf --disableplugin=subscription-manager install -y bash python3-pip python3-devel curl jq ; \
+          microdnf clean all ; \
+          pip install pulp-cli pulp-cli-maven pulp-cli-npm
+  strategy:
+    type: Docker
+  output:
+    to:
+      kind: ImageStreamTag
+      name: image-registry.openshift-image-registry.svc:5000/pulp/pulp-cli-image:latest
