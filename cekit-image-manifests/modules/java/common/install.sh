@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+mkdir -p /usr/local/maven/conf
 cat << EOF > /usr/local/maven/conf/settings.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
