@@ -62,7 +62,7 @@ spec:
       serviceAccountName: pulp-init-maven-cache
       containers:
       - name: pulp-init-maven-cache
-        image: image-registry.openshift-image-registry.svc:5000/openshift/python:latest
+        image: image-registry.openshift-image-registry.svc:5000/pulp/pulp-cli-image:latest
         env:
         - name: PULP_ADMIN
           valueFrom:
@@ -75,11 +75,6 @@ spec:
           - |
             mkdir -p /tmp/home
             export HOME=/tmp/home
-            python3 -m venv ${HOME}/.venv
-            . ${HOME}/.venv/bin/activate
-            pip install pulp-cli
-            pip install pulp-cli-maven
-
             mkdir -p ${HOME}/.config/pulp
             cat << EOF > ${HOME}/.config/pulp/cli.toml
             [cli]

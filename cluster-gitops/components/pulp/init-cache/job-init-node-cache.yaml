@@ -75,7 +75,6 @@ spec:
           - |
             mkdir -p /tmp/home
             export HOME=/tmp/home
-
             mkdir -p ${HOME}/.config/pulp
             cat << EOF > ${HOME}/.config/pulp/cli.toml
             [cli]
@@ -101,7 +100,8 @@ spec:
             if ! pulp --username admin --password ${PULP_ADMIN} npm distribution show --name npmjs-org
             then
               REMOTE_HREF=$(pulp --username admin --password ${PULP_ADMIN} npm remote show --name npmjs-org | jq -r '.pulp_href')
-              curl -X POST "http://pulp-api-svc.pulp.svc.cluster.local:24817/pulp/api/v3/distributions/npm/npm/" -u admin:${PULP_ADMIN} -H "Content-Type: application/json" -d "{\"name\": \"npmjs-org\", \"base_path\": \"npmjs-org\", \"remote\": \"${REMOTE_HREF}\",\"repository\": \"npmjs-org\"}"
+              REPOSITORY_HREF=$(pulp --username admin --password ${PULP_ADMIN} npm repository show --name npmjs-org)
+              curl -X POST "http://pulp-api-svc.pulp.svc.cluster.local:24817/pulp/api/v3/distributions/npm/npm/" -u admin:${PULP_ADMIN} -H "Content-Type: application/json" -d "{\"name\": \"npmjs-org\", \"base_path\": \"npmjs-org\", \"remote\": \"${REMOTE_HREF}\",\"repository\": \"${REPOSITORY_HREF}\"}"
               # pulp --username admin --password ${PULP_ADMIN} npm distribution create --name npmjs-org --remote npmjs-org --repository npmjs-org --base-path npmjs-org
             fi
         resources:
