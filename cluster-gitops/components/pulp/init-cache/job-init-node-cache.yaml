@@ -91,7 +91,7 @@ spec:
             
             if ! pulp --username admin --password ${PULP_ADMIN} npm remote show --name npmjs-org > /dev/null 2>&1
             then
-              pulp --username admin --password ${PULP_ADMIN} npm remote create --name npmjs-org --url https://npmjs.org
+              pulp --username admin --password ${PULP_ADMIN} npm remote create --name npmjs-org --url https://registry.npmjs.org
             fi
             if ! pulp --username admin --password ${PULP_ADMIN} npm repository show --name npmjs-org
             then
