@@ -6,5 +6,7 @@ resources:
 - operator/job-wait-for-pulp-operator.yaml
 - pulp-instance/pulp.yaml
 - pulp-instance/job-wait-for-pulp-instance.yaml
+- pulp-instance/pulp-cli-buildconfig.yaml
+- pulp-instance/job-pulp-cli-image.yaml
 - init-cache/job-init-maven-cache.yaml
 - init-cache/job-init-node-cache.yaml
