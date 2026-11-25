@@ -28,4 +28,4 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: image-registry.openshift-image-registry.svc:5000/pulp/pulp-cli-image:latest
+      name: "pulp-cli-image:latest"
